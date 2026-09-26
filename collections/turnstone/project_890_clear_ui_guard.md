@@ -1,0 +1,26 @@
+---
+name: project_890_clear_ui_guard
+description: "interactive.js clear_ui/history-refetch heal (#890, PR #895 SHIPPED 07-22): heal must be transport-free; a reconnecting heal manufactures its own trigger storm."
+metadata: 
+  node_type: memory
+  type: project
+  modified: 2026-07-23T00:10:33.443Z
+---
+
+**#890 shipped via PR #895 (2026-07-22, branch `fix/890-clear-ui-guard`, two commits: fix + harness; built in a worktree).** The coordinator's #882 G3 guard-before-wipe ported to interactive.js — deliberately not mechanical; the port earned three extra mechanisms through six review rounds (2→1→1→1→1→0 correctness; security+perf zero ×5 then dropped for the two-finder tail round per [[feedback_review_convergence_methodology]] lesson 9).
+
+**The four mechanisms (all in `turnstone/shared_static/interactive.js`):**
+1. **Guard-before-wipe**: wipe + streaming-ref reset live ONLY in `replayHistory` (success); clear_ui no longer pre-wipes; `_refetchHistory`'s failure branch = quiesce release only. Stale-but-real beats blank; truncation record stays armed for the connect-chokepoint retry; the queued edit-resend still fires on failure (rewind already committed server-side).
+2. **Resumability-gated ref reset** in `_loadHistoryThenConnect`: `if (_truncatedFromCursor == null) _resetStreamingRefs()` — refs survive a reload ONLY when the armed cursor lets the reconnect resume the mid-jitter bubble. Closes the unarmed onLogin re-auth flavor (stale ref concatenated the NEXT turn into the old bubble). The predicate reads the invariant FIELD, not caller identity.
+3. **`_historyStale` latch**: set at clear_ui arrival (+ defensively on ws reassignment), cleared in EXACTLY ONE place (replayHistory's render). Gates `_rewindToMessage`/`_startEdit`/`_editAndResend` via `busy || _historyStale` — covers the fetch window AND the failed-fetch aftermath (a quiesce-based gate reopened on the failure exit → over-rewind; r3 major). Plain sends stay ungated (count-independent; also what guarantees organic heal edges). LATCH-NOT-FLAG is the load-bearing choice.
+4. **TRANSPORT-FREE heal** (r5 critical + step-back): one bounded 2s retry from clear_ui's `.then` (scheduled-once-by-construction; fire-time guards: token/latch/!quiesce/turn-free) + a quiesced SAME-TOKEN `_refetchHistory` at organic idle edges (`else if (_historyStale && !_replayQueue)`, behind the truncated branch). **THE LESSON: a heal that touches the transport manufactures its own trigger** — the first backstop used `_loadHistoryThenConnect`; its fresh reconnect drew the server's synthetic `state_change:idle` back into the backstop = zero-backoff disconnect/refetch/reconnect storm against a recovering node, self-sustaining while /history failed. A REST refetch emits zero SSE events → loop structurally impossible. Stream death has independent owners (EventSource native reconnect, host recovery beat, truncated resync). `destroy()` cancels the retry timer (terminal-only; disconnectSSE keeps heal intent).
+
+**At-site rulings (do not re-litigate; comments carry them):** stale window stays visible ([data-busy] grey-out = deferred cosmetic parity); idle-forever pane keeps rewind/edit latch-closed until an organic settle (safer than the storm; do NOT "fix" with any transport-touching timer); armed-resync snapshot reuse = one new route into the PRE-EXISTING both-clients `in_progress_snapshot` secondary (sweep together, never one side — handler line-identical in both clients); per-caller Route-L count-neutrality (first paint empty-pane-safe; resync self-heals; onLogin at worst UNDER-rewinds).
+
+**Harness (commit 2):** `_fault_app` pure-ASGI layer in tests/_sse_recovery_server.py — `fail_history(n)`, `delay_history(ms)`, per-route counters incl. per-ws `/events` connects (prod app untouched; in-process arming). Five scenarios beside the original three: `fail-refetch`, `stale-ref-reload`, `rewind-window`, `rewind-failed-window`, `stale-backstop` (asserts events-counter FLAT across the heal — the storm regression). Every regression scenario NEGATIVE-CONTROL validated (pre-fix code stamps the predicted FAILED shape: fresh0-unchanged0 / posts2-rows0 / closed2-rows0 / sse1). Detectors that have never seen their bug are unverified detectors.
+
+**Campaign shape:** dataflow-mapper graph first (docs/design/890-clear-ui-guard-dataflow.md, local); both step-backs (latch r3, transport-free r5) adversarially design-reviewed BEFORE implementation — each killer hole caught as a sketch (mid-stream retry wipe; same-token quiesce stomp → the retry's `!_replayQueue` yield guard). r4 = teardown omission (new timer must join destroy()'s cancels).
+
+**Sibling:** #894 (coord over-rewind, pre-existing #888-era) — issue carries the full two-comment port checklist (latch-not-flag, quiesce-free retry variant, transport-free backstop, teardown wiring, storm-assertion validation); deferral comment at coord `_rewindToMessage`. The coordinator.js:1178 stale-comment rider from the session queue rode along in the PR.
+
+Related: [[project_sse_truncated_resync_hole]] (campaign lineage), [[project_884_history_coalescing]] (the server half of the restart-window pair), [[feedback_review_convergence_methodology]] (lesson 9 came from this pair).

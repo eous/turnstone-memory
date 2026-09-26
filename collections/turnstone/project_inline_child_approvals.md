@@ -1,0 +1,21 @@
+---
+name: Inline child approvals (PR #424)
+description: "Coord-tree inline child approvals or pending_approval_detail (PR #424): serialize_pending_approval_detail owns the shape; verdicts push via SSE, no poller."
+type: project
+---
+Inline approve/deny buttons + judge verdict pill on the coordinator children-tree UI. Merged
+2026-04-27 as PR #424.
+
+**Why:** A coord with N children-in-`state=attention` was unworkable — operator had to click into each child individually. Now every row resolves in place, with the LLM judge's risk pill, intent summary, and reasoning visible without navigation.
+
+**How to apply:** When touching coord-side children rendering, the inline approve flow, or the cross-tenant `pending_approval_detail` payload, these are the load-bearing facts:
+
+- **Single source of truth for the payload shape**: `SessionUIBase.serialize_pending_approval_detail()` merges `_pending_approval` items with the per-call_id `_llm_verdicts` cache. Snapshot verdict refs under `_ws_lock`, deepcopy after release (writers only assign, never mutate, so the ref is stable). The `_FakeUI` in `tests/test_server_authz.py` mirrors this method — keep them in lockstep or extract a shared helper if drift becomes a maintenance problem.
+- **Pydantic `PendingApprovalItem` + `PendingApprovalDetail`** in `turnstone/api/server_schemas.py` declare the wire shape on `DashboardWorkstream`. OpenAPI / typed clients pick it up.
+- **Wire path**: node `/v1/api/dashboard` → console `_fetch_live_block` (passes through via `_CLUSTER_WS_LIVE_KEYS` allowlist) → `/v1/api/cluster/ws/live` → coord JS `liveBadgeCache` → `renderApprovalBlock`. For coord-self rows, `_coordinator_live_snapshot` synthesizes the same shape (no `/dashboard` on the console pseudo-node).
+- **Cross-tenant exposure** of judge `reasoning` / `evidence` / `func_args` is intentional under the trusted-team posture (single `user_id` deployments). Field deliberately NOT added to `_build_node_snapshot` — that feeds the read-scope cluster bus. Documented in the serializer's docstring.
+- **Stale call_id 409 guard** in `make_approve_handler` — body `call_id` must match a current item; empty/missing skips the check (CLI/channel-adapter back-compat). Returns `current_call_id` so the JS can re-render against the new round.
+- **JS approve POST routing**: `approveWorkstream(targetWsId, body)` picks `/v1/api/workstreams/{ws_id}/approve` for coord-self (lives on the console process) vs `/v1/api/route/workstreams/{ws_id}/approve` for children (rendezvous proxy resolves to the owning node).
+- **Late LLM judge gap — ORIGINAL WORKAROUND SUPERSEDED (re-checked 2026-07-06):** at PR #424 landing, the judge ran async on the child node and emitted `intent_verdict` only on the per-ws SSE stream with no push to the coord, worked around with a single global poller (`_maybeStartJudgePoll` / `_judgePollTick`, bulk-fetch every row with `judge_pending=true && !allHaveJudge` every 2s, capped at 90s). **That poller no longer exists** — confirmed absent repo-wide (`grep -r maybeStartJudgePoll` = zero hits). It was replaced just 3 days later (commits `802d87a5`/`38a0d9c3`, 2026-04-30, "Stage 3 SessionManager Children primitive lift + cluster bus push paths") by a dedicated **`child_ws_intent_verdict` SSE event** (`coordinator.js` case at ~line 2800, handled by `handleChildIntentVerdict`) that pushes verdicts to the coord directly as they land, "without piggybacking on cluster_state" (source comment) — plus a bulk fetch only on initial approval entry. Approval state is now fully event-driven; no poll loop remains (the file's only surviving `setInterval` is unrelated child-row pruning). Per-row polling's original wrongness (scheduleLiveFetch skipping non-visible rows) is now moot.
+- **Reconnect parity**: `_coord_events_replay` re-yields cached `_llm_verdicts` after the `_pending_approval` re-injection, mirroring the interactive path at `server.py:875-878`. Without this, a refreshing tab saw the approve dock without the judge chip.
+- **Activity-state pipeline**: `cluster_state` events from `console/collector.py` (3 emitters) and `child_ws_state` re-emit in `console/coordinator_adapter.py` carry `activity_state`. The JS uses transitions in/out of `"approval"` to fire urgent live-bulk fetches.

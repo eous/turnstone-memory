@@ -1,0 +1,21 @@
+---
+name: project_memory_relevance_pipeline
+description: "Prefix memory injection (memory_relevance.py, session.py): composed once after the first user turn, then frozen for cache stability; per-turn refresh unbuilt."
+metadata: 
+  node_type: memory
+  type: project
+---
+
+Proactive memory injection (`turnstone/core/memory_relevance.py` + `session.py`), composed into the system prefix:
+
+1. **Candidate fetch** `_select_memory_candidates` (session.py:7343): query = `extract_recent_context` = **last 3 user messages**, newest-first (NOT the first message). SQL search `search_visible_structured_memories(limit=fetch_limit=50)`; if <50 hits, union with the recency list → up to ~100 candidates. This stage is SQL, not BM25.
+2. **Rank** `score_memories` → `BM25Index.search(k=relevance_k=5)` (bm25.py): documents = `name + description + content[:200]`. BM25 ranks; if a reranker is attached (`tools.rerank_bm25` on + a Reranker-role model), the top `_RERANK_POOL=50` BM25 hits are reranked (FILTER mode when a floor `thr>0` → may drop sub-floor, inject <5); top-5 returned. — a **retrieval pass pipeline** in the harness-as-compiler frame, the FILTER-mode floor being the **measured relevance gate** ([[project_harness_compiler_dialect_stack]]).
+3. **Inject** `build_memory_context`: each memory's content flat-truncated to **500 chars** + "..."; `<memories>` XML appended to the developer/system prefix.
+
+`MemoryConfig`: relevance_k=5, fetch_limit=50, max_content=32768. **`max_content` is ONLY the per-memory save cap** (session.py ~10041), NOT an injection budget — injection trimming is just the flat 500-char head-cut.
+
+**Recompose triggers** (`_init_system_messages`): `__init__`, `set_skill`, MCP resource/prompt change, model refresh, `resume`, `handle_command`. **Memory-tool writes NO LONGER recompose** (#734, 2026-06-29): a save/update was rebuilding the cached system prefix — busting the provider prompt cache for a memory the model already holds via its tool result — now it only invalidates the per-turn search cache (in-turn `memory(search/list)` still sees the write); the new memory folds into the prefix at the next natural recompose or next session. Same commit dropped the redundant `/reason` recompose (effort rides request kwargs, not the prefix). Companion #735: memory save/update is an atomic single-statement upsert. **NOT the normal send() turn** — `_full_messages()` only concatenates `system_messages + messages`. So memory selection is frozen between triggers. Memories live in the cached system prefix (Anthropic ephemeral cache breakpoint, `_anthropic.py:315`), so recomposing every turn would bust the prompt cache — that's the tension.
+
+**Bug + fix (2026-06-01, commit `fec40ab6` on branch `rerank-per-model`):** a fresh session composes at `__init__` with empty `self.messages` → empty query → no-context path → recency-only memories (5 most recently UPDATED), BM25/reranker never invoked, frozen all session = visibly off-topic memories (user observed live). Fix: `_system_composed_with_context` flag (set once `extract_recent_context` is non-empty); `send()` recomposes once after `_append_user_turn` while the flag is False, so the opening turn's memories are query-relevant, then the flag freezes it (cache-stable, no per-turn churn). Resume + turns 2+ unchanged.
+
+**Two gaps deliberately left (deferred):** (1) rerank/BM25 only see `content[:200]`; (2) flat 500-char head-trim, no `max_content`-budgeted balanced trim (the user's expected design was budget-aware head-keep across the k memories). **Per-turn memory refresh** (so mid-conversation topic shifts also re-rank) is the larger **tail-injection redesign** — move the volatile memory block OUT of the cached prefix to a per-turn tail system message — this is the cache-safe way to get per-turn relevance. **Status check 2026-07-06: UNVERIFIED as in-progress** — no branch, local or remote, matches this description as of today (searched `git branch -a` + `git log --all` for tail/per-turn keywords, nothing found); treat as planned-but-not-yet-started rather than active work until a branch surfaces. Relates to [[project_mid_conversation_system_messages]], [[project_bm25_rerank_redirect]], [[project_reranker_backend_design]], [[project_model_modal_kind_redesign]].

@@ -1,0 +1,57 @@
+name: memory
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      # On a pull request the checks come from the base commit, so a PR can't
+      # weaken the scripts that judge it; they run against the PR's files.
+      - name: Check scripts from the trusted base
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = pull_request ]; then
+            git worktree add -q --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+            echo "CHECKS=$RUNNER_TEMP/base" >> "$GITHUB_ENV"
+          else
+            echo "CHECKS=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+          fi
+      - name: Unit tests (trusted copy)
+        run: cd "$CHECKS" && python3 -m unittest discover -s tests -v
+      - name: Frontmatter, names and links
+        run: python3 "$CHECKS/scripts/index.py" --check --root "$GITHUB_WORKSPACE"
+      - name: Scan the complete shared snapshot
+        run: python3 "$CHECKS/scripts/scan.py" --repo "$GITHUB_WORKSPACE" --tree HEAD
+      - name: Check every outgoing commit
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          AUTHOR: ${{ github.event.pull_request.author_association }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          scope=()
+          if [ "$EVENT" = pull_request ]; then
+            revisions="$BASE_SHA..HEAD"
+            # Only the repository owner may change anything outside shared memories.
+            [ "$AUTHOR" = OWNER ] || scope=(--proposal)
+          elif [ -z "${BEFORE//0/}" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            revisions=HEAD
+          else
+            revisions="$BEFORE..HEAD"
+          fi
+          python3 "$CHECKS/scripts/scan.py" --repo "$GITHUB_WORKSPACE" "${scope[@]}" --commits "$revisions"

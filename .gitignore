@@ -1,0 +1,9 @@
+# Inside a collection only top-level memory files can be tracked: user/ (local-only
+# memories), editor autosaves, stray files and other directories never ride along.
+collections/*/*
+!collections/*/*.md
+collections/*/.*
+collections/*/MEMORY.md
+__pycache__/
+.ruff_cache/
+docs/design/
