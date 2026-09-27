@@ -39,21 +39,32 @@ def tracked(project: Path, target: Path) -> bool:
 
 def exclude(project: Path, target: Path) -> None:
     """Keep a file holding local paths out of the project's commits."""
+    git = ["git", "-C", str(project), "rev-parse"]
     result = subprocess.run(
-        ["git", "-C", str(project), "rev-parse", "--git-path", "info/exclude"],
-        capture_output=True,
-        text=True,
+        [*git, "--git-path", "info/exclude"], capture_output=True, text=True
     )
     if result.returncode:
         return  # not a git checkout: nothing to keep it out of
     path = Path(result.stdout.strip())
     if not path.is_absolute():
         path = project / path
-    entry = "/" + target.name
+    # Patterns are anchored at the top of the work tree, not at a subdirectory
+    # project, and glob characters in its directory names must match literally.
+    prefix = subprocess.run(
+        [*git, "--show-prefix"], capture_output=True, text=True, check=True
+    ).stdout.rstrip("\n")
+    entry = "/" + "".join(f"\\{c}" if c in "\\*?[" else c for c in prefix + target.name)
     lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
     if entry not in lines:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("\n".join([*lines, entry]) + "\n", encoding="utf-8")
+
+
+def own_rules(text: str) -> bool:
+    """Whether instructions hold anything besides this setup's block."""
+    if START in text and END in text:
+        text = text[: text.index(START)] + text[text.index(END) + len(END) :]
+    return bool(text.strip())
 
 
 def install(target: Path, content: str) -> None:
@@ -119,10 +130,12 @@ def main() -> int:
         install(target, content)
     if args.agent in ("claude", "both"):
         claude = content
-        # A CLAUDE.local.md makes Claude Code treat the project as having CLAUDE-style
-        # instructions; import AGENTS.md so a project that keeps its rules only there
-        # doesn't silently lose them.
-        if (project / "AGENTS.md").exists() and not (project / "CLAUDE.md").exists():
+        # A CLAUDE.local.md stops Claude Code from reading AGENTS.md by itself; import
+        # the project's own AGENTS.md rules unless a CLAUDE.md stands in for them.
+        agents = project / "AGENTS.md"
+        rules = agents.read_text(encoding="utf-8") if agents.is_file() else ""
+        claude_md = (project / "CLAUDE.md", project / ".claude" / "CLAUDE.md")
+        if own_rules(rules) and not any(path.exists() for path in claude_md):
             claude = "@AGENTS.md\n\n" + content
         install(project / "CLAUDE.local.md", claude)
     return 0

@@ -42,9 +42,11 @@ python3 scripts/setup.py --agent claude --project /absolute/path/to/turnstone
 ```
 
 This adds a managed block to `CLAUDE.local.md` in the target checkout, preserving existing
-instructions. Keep that local file out of commits. The setup leaves existing auto-memory
-folders and global settings in place. It reads the collection explicitly, so it does not
-require a symlink or replacement of your personal memory.
+instructions. Keep that local file out of commits. A `CLAUDE.local.md` stops Claude Code from
+reading `AGENTS.md` by itself, so when the checkout keeps its own rules only in `AGENTS.md`, the
+block imports that file. The setup leaves existing auto-memory folders and global settings in
+place. It reads the collection explicitly, so it does not require a symlink or replacement of
+your personal memory.
 
 To configure both coding agents, use `--agent both`. See the
 [memory documentation](https://code.claude.com/docs/en/memory) for local instruction discovery
@@ -53,12 +55,13 @@ of 200 lines or 25 KB.
 
 ### Turnstone
 
-Generate the index before mounting the clone read-only into the node that runs the file tools.
-For example, add this volume to the relevant service in your deployment's compose configuration:
+Generate the index before mounting the clone read-only into each node that runs the file tools.
+Turnstone's `compose.yaml` names those services `node-1` through `node-10`. For example, add this
+volume to each one you run, such as in a Compose override file:
 
 ```yaml
 services:
-  node:
+  node-1:
     volumes:
       - /absolute/path/to/turnstone-memory:/opt/turnstone-memory:ro
 ```
@@ -88,13 +91,19 @@ MEMORY_REPO_DIR='/workspace/turnstone-memory' \
 ```
 
 Run the script from an existing clone of this repository, or place its contents in your
-trusted environment setup. The target directory must be absent or an existing clone with
-that exact origin. Repeated setup preserves local edits and does not pull automatically.
+trusted environment setup. The target directory must be absent or an existing clone of that
+origin; a trailing `/` or `.git` on either URL is ignored. Repeated setup preserves local edits
+and does not pull automatically.
 
 Reading needs no token. Setup installs no credential helper, git identity, or publication hook.
 The clone and project instructions must be inside paths visible to the agent phase. Setup-shell
 exports do not necessarily persist into that phase; this setup writes the pointer to disk.
-For environment details, see the [cloud environment documentation](https://learn.chatgpt.com/docs/environments/cloud-environment).
+For Codex, see the [cloud environment documentation](https://learn.chatgpt.com/docs/environments/cloud-environment).
+
+In [Claude Code cloud sessions](https://code.claude.com/docs/en/claude-code-on-the-web), attach
+this repository alongside Turnstone. Its `CLAUDE.md` loads when the session starts and points to
+the memories, so no setup step is required. Each session VM starts from fresh clones, so a
+pointer installed there with `setup.py` lasts only as long as that VM.
 
 ## Contribute memories
 
