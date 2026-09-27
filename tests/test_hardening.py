@@ -172,6 +172,33 @@ class SetupSafetyTests(RepositoryTest):
         self.assertEqual(self.setup_cmd(project, agent="claude").returncode, 0)
         self.assertIn("@AGENTS.md", (project / "CLAUDE.local.md").read_text())
 
+    def test_claude_directory_instructions_stand_in_for_agents_md(self):
+        project = self.git_project("dot-claude")
+        (project / "AGENTS.md").write_text("# Existing rules\n")
+        (project / ".claude").mkdir()
+        (project / ".claude/CLAUDE.md").write_text("# Claude rules\n")
+        self.command("git", "-C", str(project), "add", "AGENTS.md", ".claude")
+        self.assertEqual(self.setup_cmd(project, agent="claude").returncode, 0)
+        self.assertNotIn("@AGENTS.md", (project / "CLAUDE.local.md").read_text())
+
+    def test_both_agents_do_not_import_the_pointer_setup_wrote(self):
+        project = self.git_project("no-rules")
+        for _ in range(2):
+            self.assertEqual(self.setup_cmd(project).returncode, 0)
+        # AGENTS.md holds only this setup's block; importing it repeats the pointer.
+        local = (project / "CLAUDE.local.md").read_text()
+        self.assertNotIn("@AGENTS.md", local)
+        self.assertEqual(local.count("Turnstone development memories"), 1)
+
+    def test_subdirectory_project_files_are_excluded(self):
+        project = self.git_project("monorepo")
+        nested = project / "docs [draft]"
+        nested.mkdir()
+        self.assertEqual(self.setup_cmd(nested).returncode, 0)
+        self.assertTrue((nested / "CLAUDE.local.md").is_file())
+        status = self.command("git", "-C", str(project), "status", "--porcelain").stdout
+        self.assertEqual(status, "")
+
 
 if __name__ == "__main__":
     unittest.main()

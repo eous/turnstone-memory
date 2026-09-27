@@ -11,12 +11,19 @@ case "$MEMORY_REPO_URL" in
         exit 1 ;;
 esac
 
+# Git and hosting services resolve a repository URL with or without a trailing
+# slash or .git, and clones record whichever form was given.
+same_repository() {
+    local a="${1%/}" b="${2%/}"
+    [ "${a%.git}" = "${b%.git}" ]
+}
+
 if [ -e "$repo" ]; then
     actual="$(git -C "$repo" rev-parse --show-toplevel)"
     [ "$actual" = "$(cd -- "$repo" && pwd -P)" ] || {
         echo "MEMORY_REPO_DIR is not a repository root" >&2; exit 1;
     }
-    [ "$(git -C "$repo" remote get-url origin)" = "$MEMORY_REPO_URL" ] || {
+    same_repository "$(git -C "$repo" remote get-url origin)" "$MEMORY_REPO_URL" || {
         echo "Existing clone has a different origin; choose another MEMORY_REPO_DIR" >&2; exit 1;
     }
 else

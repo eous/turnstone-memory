@@ -4,7 +4,7 @@ description: "Release tracks (main → 1.9, 1.8 emergency-only, stable/1.7 no ba
 metadata: 
   node_type: memory
   type: project
-  modified: 2026-09-25T21:02:07.281Z
+  modified: 2026-09-27T00:10:17.000Z
 ---
 
 **Tracks and queue (2026-09-26):**
@@ -12,8 +12,9 @@ metadata:
 - 1.9: mcp v2 #679 + coordinator MCP. Next: #900 · #901 · in_progress_snapshot sweep.
 - Untracked-by-file: #891 #864 #802 #755 #865 #843 #797 #798 #1001 #1002. Lift family: #827 #832 #965.
 - Provider/backends design filed 09-25: #1213 provider descriptors, #1214 backends per alias (absorbs fallback), #1215 PAIR/Switchyard as backends
+- Migration head on `dev`: **077** (`077_oauth_tokens`, created 2026-09-11, down_revision 076; checked 2026-09-27 at cf70819). Before adding a migration, re-check with `ls turnstone/core/storage/migrations/versions | sort | tail -1`.
 
-**2026-09-10:** integration branch is `dev` (22 ahead of `main`); migration head on dev = 076 (`076_workstream_node_affinity`), 075 channel-route-owner already merged.
+**2026-09-10:** integration branch is `dev` (22 ahead of `main`).
 
 # Current state detail (as of 2026-08-11)
 

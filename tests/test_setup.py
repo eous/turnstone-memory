@@ -49,6 +49,33 @@ class SetupTests(RepositoryTest):
             self.command("git", "-C", str(clone), "config", "--local", "--list").stdout,
         )
 
+    def test_cloud_setup_matches_origin_without_git_suffix(self):
+        project = self.root / "project"
+        project.mkdir()
+        clone = self.root / "hosted clone"
+
+        def setup(url):
+            env = dict(os.environ, MEMORY_REPO_URL=url, MEMORY_REPO_DIR=str(clone))
+            return self.command(
+                "bash",
+                str(SOURCE / "cloud/setup.sh"),
+                "--agent",
+                "claude",
+                "--project",
+                str(project),
+                env=env,
+                check=False,
+            )
+
+        self.assertEqual(setup(str(self.remote)).returncode, 0)
+        # Hosted sessions may record the origin without .git or with a trailing slash.
+        bare = str(self.remote)[: -len(".git")]
+        self.command("git", "-C", str(clone), "remote", "set-url", "origin", bare)
+        self.assertEqual(setup(str(self.remote) + "/").returncode, 0)
+        other = setup(str(self.root / "other.git"))
+        self.assertEqual(other.returncode, 1)
+        self.assertIn("different origin", other.stderr)
+
     def test_setup_rejects_broken_markers_and_instruction_symlink(self):
         project = self.root / "target"
         project.mkdir()
