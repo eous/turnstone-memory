@@ -34,3 +34,12 @@ One theme: get SDK/library/wire **boundaries** right — spike first, verify ass
 
 
 **Internal seams count too** (2026-09-06, #1108 attempt 1). `model_turn` materializes attachments BEFORE it calls `prepare_wire`; a lowering pass written against the by-reference placeholder shape was inert on the live path and its tests passed because they drove `dicts_from_turns(self.messages)`. Rule: for any change at a shared internal seam (`model_turn`, the attachment resolver, the wire cache), trace the call order first (the `dataflow-mapper` agent or a 10-minute read), then write the first test against the *materialized* wire — `materialize_attachments(...)` output fed to `_prepare_lowered_wire_messages` — not against the trajectory. Two review rounds (19 then 13 clusters) were spent on consequences of skipping this; see docs/design/1108-video-attempt-1-lessons.md (LOCAL).
+
+**SDK major bumps hide their breakage in error paths** (major_bump_silent_classes). Before calling a major-version port "minimal", grep for three patterns a smoke test cannot see:
+- `getattr(obj, "oldFieldName", default)`: a renamed attribute silently yields the default.
+- `isinstance(exc, oldlib.X)` and `except oldlib.X`, where the SDK swapped its HTTP library: the new library's exceptions are not subclasses of the old ones.
+- A classifier keyed on an error code or status the SDK used to synthesize.
+
+Then drive each error path through a real server.
+
+*Why* / case (#679 refresh, 2026-09-28, `mcp` 2.2.0): a v2 port that connects, lists and calls tools would still report tool errors as successes (`getattr(result, "isError", False)`). It would also stop evicting restarted-server sessions (the positive `32600` and `httpx.*` checks), and never trip the breaker on upstream 5xx. All of this was verified with a boundary spike against a real v2 server; see [[project_679_mcp_sdk_v2]].

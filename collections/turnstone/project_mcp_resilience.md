@@ -1,6 +1,6 @@
 ---
 name: mcp-client-resilience-hardening
-description: "Touching mcp_client.py breaker/reconnect/background tasks (shipped #296/#660): keep mcp>=1.27,<2; add no closure-factory layers, v2 drops them."
+description: "Touching mcp_client.py breaker/reconnect/background tasks (shipped #296/#660): keep mcp>=1.27,<2 until #679; keep closure layers thin; v2 keeps message_handler."
 metadata: 
   node_type: memory
   type: project
@@ -37,8 +37,9 @@ no circuit breaker, future cancellation, or backoff.
 - Servers auto-reconnect with fuzzy backoff, never permanently disconnected.
 - All fixes are application-layer wrappers around the MCP SDK's known bugs.
 - Circuit breaker is independent per server (lightweight dict-based state).
-- Pin `mcp` below 2 to avoid the v2 breaking rewrite (pyproject now carries `mcp>=1.27,<2`; the v2 migration is #679, targeted 1.8 — 2.0.0b1 out as of 2026-07-01).
-- **mcp v2 drops the factory pattern** (the maintainer, 2026-07-14, because of its problems): v1's callback-factory surfaces (`ClientSession(message_handler=...)` bound-at-creation closures) go away in v2. Consequences: (a) don't deepen closure-factory layers in mcp_client — they get unwound at #679 (this reshaped issue #842's proposed dedup: keep thin binding closures, dedup the protocol as a plain parametrized method); (b) closure-captured name/key bindings outliving their target's removal are the bug class behind the lock/entry-identity recheck family in the notification runners.
+- Pin `mcp` below 2 to avoid the v2 breaking rewrite. `pyproject.toml` carries `mcp>=1.27,<2`, and the v2 migration is #679 (release label `1.9`; upstream was at 2.2.0 on 2026-09-28). Its failure-classification traps are in [[project_679_mcp_sdk_v2]].
+- **Keep closure-factory layers thin** (the maintainer's ruling, 2026-07-14, made because of the problems that pattern causes). This reshaped the dedup proposed in issue #842: keep thin binding closures, and dedup the protocol as a plain parametrized method. Closure-captured name/key bindings that outlive their target's removal are the bug class behind the lock/entry-identity recheck family in the notification runners.
+  - Correction (verified on `mcp` 2.2.0, 2026-09-28): this note used to say v2 removes `ClientSession(message_handler=...)` closures. It doesn't; v2 keeps that constructor callback. The factory v2 removes is streamable HTTP's `httpx_client_factory`: callers now pass a pre-built `httpx2.AsyncClient`. The ruling itself is unchanged; only its v2 premise was wrong.
 
 **Why:** Production CPU pegging from misbehaving MCP servers.
 **How to apply:** Reference when touching MCP client code. Circuit breaker

@@ -25,7 +25,7 @@ metadata:
 - Shipped/resolved: [Nudge wake](project_nudge_wake_fixes.md) — PR #799; wake gate keys on the Workstream object + requires a real NudgeQueue; Mock sessions caused wake storms
 - Shipped/resolved: [History tsvector](project_history_search_tsvector_fix.md) — Pg history search 1MB-tsvector abort → left() cap + rollback (PR #795); GIN column queued
 - Shipped/resolved: [MCP flaky CPU spin](project_mcp_flaky_cpu_spin_regression.md) — MCP CPU spin after server flap → FIXED #787/#788: transport owner tasks, one cancel max
-- Open/deferred: [1.7→1.8 roadmap](project_1_7_roadmap.md) — 1.7 shipped; rolled-forward 1.8+ backlog incl. the mcp v2 #679 brief; re-spike before building
+- Open/deferred: [1.7→1.8 roadmap](project_1_7_roadmap.md) — 1.7 shipped; rolled-forward 1.8+ backlog; the mcp v2 #679 plan moved to project_679_mcp_sdk_v2; re-spike before building
 - Open/deferred: [Frontend long-session](project_frontend_long_session_audit.md) — Long-session frontend perf/wedge → #754 on dev; #755 windowing/CSS pair NOT on dev; P3 infra open
 - Open/deferred: [Compaction vs definition](project_compaction_definition_review.md) — Compaction quality work: #751/#752 shipped; build the pi-sufficiency eval before PR 3
 - Open/deferred: [Task agent modernization](project_task_agent_modernization.md) — task_agent rebuild SHIPPED #732; open: perception sub-harness for images, bug-3 id unification
