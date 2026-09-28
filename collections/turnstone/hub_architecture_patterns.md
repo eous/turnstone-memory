@@ -31,7 +31,7 @@ metadata:
 - Gotchas: [Dual style.css](project_dual_static_style_css.md) — style.css differs per server → shared visual rules go in shared_static/*.css
 - Gotchas: [Bash tool pipe-EOF hang](project_bash_tool_pipe_eof_hang.md) — FIXED #816 (_exec_bash killpg on every exit); opt-in background calls = #817
 - SHIPPED: [Canonical trajectory](project_canonical_trajectory_redesign.md) — Trajectory/wire/storage code → canonical Turn SHIPPED v1.6.0; lowering.py owns fold+repair
-- SHIPPED: [Mid-conv system messages](project_mid_conversation_system_messages.md) — Mid-conv role=system SHIPPED v1.6.0; native opus-4-8 only, else nonce-fenced fold via core/fence.py
+- SHIPPED: [Mid-conv system messages](project_mid_conversation_system_messages.md) — Mid-conv role=system SHIPPED v1.6.0; native on current Claude rows (flag per row), else nonce-fenced fold via core/fence.py
 - SHIPPED: [Attachments](project_attachments_subsystem.md) — Attachment kinds/perception (shipped 1.6.x): refcounted blobs + capability-gated modality fallback
 - SHIPPED: [Frontend L-shell](project_frontend_lshell_renovation.md) — Frontend pane/shell work: L-shell SHIPPED; coordinators console-local, interactive node-proxied
 - SHIPPED: [Admin shelf](project_admin_shelf_redesign.md) — New console admin dialog: pane-scoped hatch shelf, not a popup; obey clip/label/nesting rules
