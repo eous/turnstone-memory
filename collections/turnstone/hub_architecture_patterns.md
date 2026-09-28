@@ -41,7 +41,7 @@ metadata:
 - SHIPPED: [mTLS](project_mtls_architecture.md) — mTLS or console HTTPS → console is plain HTTP behind Caddy; 2026-05-30 cert fixes landed
 - SHIPPED: [Direct HTTP transport](project_direct_http_transport.md) — Redis MQ and hash ring are gone; direct HTTP + rendezvous-hash console routing, complete
 - SHIPPED: [Gemini thought_signature](project_gemini_thought_signature.md) — Gemini thought_signature 400 on tool calls: SHIPPED #328, provider_blocks lane hooks in _google.py
-- SHIPPED: [MCP resilience](project_mcp_resilience.md) — mcp>=1.27,<2; add no closure-factory layers (v2 drops them); caplog cannot see structlog
+- SHIPPED: [MCP resilience](project_mcp_resilience.md) — mcp>=1.27,<2 until #679; keep closure layers thin (v2 keeps message_handler); caplog cannot see structlog
 - SHIPPED: [MCP cluster-ops](project_mcp_cluster_ops_example.md) — Multi-node SDK dispatch: copy mcp-cluster-ops route_create_workstream/send_and_wait/route_close
 - SHIPPED: [MCP prompts governance](project_mcp_prompts_governance.md) — MCP prompts / external prompt sources → governed prompt_templates rows, never a side channel
 - SHIPPED: [Model definitions](project_model_definitions.md) — New admin entity: copy the model_definitions pattern, config-over-DB merge, write-only secrets

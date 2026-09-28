@@ -24,7 +24,9 @@ bot review missed — chiefly that #741's dead-transport fix was incomplete.
 Extended `_is_dead_transport` classification to `read_resource_sync` +
 `get_prompt_sync` (were still `BrokenPipe/ConnReset/EOF`-only → same corpse-reuse
 restart-hang #741 fixed only for `call_tool_sync`). Anchored the match on the
-SDK's synthesized `code=32600` + exact `"session terminated"` message, and
+SDK's synthesized `code=32600` + exact `"session terminated"` message (by 2026-09-28
+`_is_dead_transport` keys on the positive code alone, since the message is
+application-controlled), and
 **dropped the bare `"session not found"` substring** — the SDK never emits it
 client-side, but healthy session-owning servers use that phrase for their own
 app-level stale-id rejections, so matching on it was evicting live sessions and
@@ -79,8 +81,11 @@ stream), capped at `MAX_RECONNECTION_ATTEMPTS=2`, flat ~1s delay, and it fails
 stdio/sse/websocket have zero reconnect; `ClientSessionGroup` is a naive
 aggregator with no health/reconnect; `backoff`/`jitter` appear nowhere in
 `mcp/client/`. Reconnect is Turnstone's to own — nothing upstream to lean on.
-SDK v2 (`mcp>=1.27,<2` pinned; v2 tracked as **issue #679**, targeted 1.8) is a
-breaking rewrite, not worth waiting for.
+SDK v2 (`mcp>=1.27,<2` pinned; v2 tracked as **issue #679**) is a breaking rewrite,
+not worth waiting for. v2 note (verified on 2.2.0, 2026-09-28): both signals this
+classifier keys on disappear in v2. The SDK raises `httpx2.*` rather than `httpx.*`,
+and a restarted server's 404 surfaces as `MCPError(-32600, ...)`, never the positive
+`32600`. See [[project_679_mcp_sdk_v2]].
 
 Code confirmed live in `turnstone/core/mcp_client.py` as of 2026-07-06:
 `_user_token_sweep_loop` (~line 2188), `_static_health_loop` (~line 4428), both

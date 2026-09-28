@@ -1,6 +1,6 @@
 ---
 name: project_1_7_roadmap
-description: "1.7.0 SHIPPED 2026-07-05; recall for what rolled to 1.8+ (mcp v2 #679 brief, tail-injection, kind modal): re-spike before building."
+description: "1.7.0 SHIPPED 2026-07-05; recall for what rolled to 1.8+ (tail-injection, kind modal; the mcp v2 plan now lives in project_679_mcp_sdk_v2): re-spike before building."
 metadata:
   node_type: memory
   type: project
@@ -34,14 +34,16 @@ This file was drafted 2026-06-11 as a forward-looking "1.7 dream list." Rewritte
 
 ## Rolled forward to 1.8+ (still live — re-spike before building)
 
-- **mcp v2 package migration (issue #679)** — full brief preserved below, still the plan.
-- **Coordinator MCP tool surface (#725)** — still blocked on #679.
+- **mcp v2 package migration (issue #679)**: the brief below is pre-refresh history. The current plan is the issue body, rewritten 2026-09-28 against `mcp` 2.2.0 and summarized in [[project_679_mcp_sdk_v2]].
+- **Coordinator MCP tool surface (#725)**: built on v1 in #879 instead of waiting for #679, so the console now hosts an `MCPClientManager` too.
 - **Memory tail-injection redesign** — move the volatile recalled-memory block out of the cached system prefix into a per-turn tail system turn (the dominant Anthropic cache-miss lever). Still not started as of 2026-07-06 (no matching branch found). [[project_memory_relevance_pipeline]]
 - **Q4 server-tool→text projection** — cross-provider resume still drops a foreign producer's server-tool result blocks. Still pending. [[project_canonical_trajectory_redesign]]
 - **Kind-aware model modal** — explicit `kind` discriminator still deferred (re-verified 2026-07-06, no `kind` field in admin.js yet). [[project_model_modal_kind_redesign]]
 - **Phase-8 backlog** — unchanged. [[project_phase8_status]]
 
-## MCP v2 migration brief (issue #679 — still the plan, re-verified 2026-07-06)
+## MCP v2 migration brief (issue #679, 2026-06/07 history)
+
+Superseded on 2026-09-28. v2 went stable on 2026-07-28, and the refreshed plan (a legacy-era port first, then the 2026-07-28 features) is in [[project_679_mcp_sdk_v2]]. What follows is kept as dated evidence of the earlier reasoning.
 
 Re-verified 2026-07-06: upstream `mcp` is at **2.0.0b1** on PyPI (confirmed via `pip index versions mcp --pre` and the PyPI JSON API — no `rc` yet). Stable ~2026-07-27 per upstream's own schedule, now 3 weeks out. Our pin is still `mcp>=1.27,<2`; latest 1.x is 1.28.1. The "spike+branch at beta" trigger has been armed since the beta actually shipped (target was 2026-06-30, now past) — nothing has forced action yet since no rc/stable exists.
 
@@ -49,11 +51,11 @@ The migration is NOT mechanical: `streamablehttp_client` → `streamable_http_cl
 
 Research basis: 2026-06-11 agent report; re-examined 2026-06-12 against the live a1, migration.md, and the 2026-07-28 spec RC. **Target the true beta/stable, not the alphas**: a1 implemented only the 2025-11-25 spec (zero capability gain over v1.27), upstream reserves breaking changes per alpha, and the beta is the first cut with full 2026-07-28-spec support (compat shims land before stable). Decisive: the 2026-07-28 stateless core REMOVES the initialize handshake + `Mcp-Session-Id` header, so the alpha's session-id-capture path (httpx event hooks) gets reshaped again — migrating off an alpha reworks the capturing factory twice. Extra surface from migration.md beyond the 06-11 list: `McpError`→`MCPError` (new ctor), resource `uri` AnyUrl→plain str, WebSocket transport removed, and POSIX `stdio_client` no longer kills children after graceful exit (our stdio cleanup must terminate explicitly). #2147 busy-loop still open and maintainer-disputed (2026-04-08) — our resilience wrappers stay regardless (see the durable "no client reconnect handler in the SDK" finding in [[project_mcp_dead_transport_followup]], independently re-confirmed against 1.28.1). Sizing (2026-06-12): ~32 camelCase reads / 8 files; FastMCP in 5 files; 67 streamablehttp/_httpx_utils/McpError sites.
 
-Apps tie-in: SEP-1865 ratified and folded into 2026-07-28 as an official extension; host-side Apps SDK is TS-only (`@modelcontextprotocol/ext-apps`), Python = examples only — v2 is the protocol-level prerequisite for the deferred tool-owned-surfaces on-ramp ([[project_frontend_lshell_renovation]]); iframe/postMessage host work stays frontend-side and deferred. Designated first-party Apps dogfood server: **Understone** (examples/door-game) — its cell-grid screen model (glyph+color, renderer-decoupled) is exactly the data a future `ui://` view renders; gen-2 full-fidelity tile mode is the planned Apps milestone.
+Apps tie-in: SEP-1865 ratified and folded into 2026-07-28 as an official extension; host-side Apps SDK is TS-only (`@modelcontextprotocol/ext-apps`), Python = examples only (as of 2026-06; by 2.2.0 the Python SDK ships server-side `mcp.server.apps`, while the host renderer is still ours) — v2 is the protocol-level prerequisite for the deferred tool-owned-surfaces on-ramp ([[project_frontend_lshell_renovation]]); iframe/postMessage host work stays frontend-side and deferred. Designated first-party Apps dogfood server: **Understone** (examples/door-game) — its cell-grid screen model (glyph+color, renderer-decoupled) is exactly the data a future `ui://` view renders; gen-2 full-fidelity tile mode is the planned Apps milestone.
 
 **Sequencing update 2026-07-11**: the maintainer's v2-beta spike found the #679 migration minimal in practice (mainly the httpx-factory swap; rest mostly works as-is) — the migration-risk rationale for gating other MCP build-out behind #679 is **invalidated**; MCP work may now proceed in parallel (first mover: #551 re-scope, see [[project_mcp_obo_single_token]]).
 
-**MCP v2-sequenced issues** (`mcp v2` label, filed 2026-06-19): **#679** v2 SDK migration (above). **#680** EMA/ID-JAG client support — standardized IdP-governed successor to host-side OBO, supersedes #551 (host-side RFC 8693 OBO, deferred, kept as design record); key finding: Entra does NOT issue ID-JAG (Okta/Keycloak/Athenz only) — Azure's 2nd-consent prompt is already removable via Entra pre-authorized client apps on the existing `oauth_user` flow, so EMA mainly serves non-MS IdPs. **#681** `ui://` MCP-Apps host (SEP-1865) — render surfaces as an `app-surface` pane via `PaneManager.registerType` + split view, iframe sandbox + postMessage↔JSON-RPC routed through the conversation approval path; Understone gen-2 tile mode = dogfood. Release targets (release-track labels, no milestones): #679 → `1.8`; #680 + #681 → `1.9`. Entra pre-authorized-clients runbook filed as **#682** (today-actionable, independent of the v2 cluster).
+**MCP v2-sequenced issues** (`mcp v2` label, filed 2026-06-19): **#679** v2 SDK migration (above). **#680** EMA/ID-JAG client support — standardized IdP-governed successor to host-side OBO, supersedes #551 (host-side RFC 8693 OBO, deferred, kept as design record); key finding: Entra does NOT issue ID-JAG (Okta/Keycloak/Athenz only) — Azure's 2nd-consent prompt is already removable via Entra pre-authorized client apps on the existing `oauth_user` flow, so EMA mainly serves non-MS IdPs. **#681** `ui://` MCP-Apps host (SEP-1865) — render surfaces as an `app-surface` pane via `PaneManager.registerType` + split view, iframe sandbox + postMessage↔JSON-RPC routed through the conversation approval path; Understone gen-2 tile mode = dogfood. Release targets (release-track labels, no milestones): #679 → `1.8` when filed, relabeled `1.9`; #680 + #681 → `1.9`. Entra pre-authorized-clients runbook filed as **#682** (today-actionable, independent of the v2 cluster).
 
 ## Small deferred items (batch when touching the area)
 
