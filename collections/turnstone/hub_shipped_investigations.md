@@ -6,6 +6,7 @@ metadata:
 ---
 
 ## Shipped or closed investigations
+- [Attachment framing for small models](project_attachment_framing_small_models.md) — 09-28: Nemotron 4B/30B looked on disk for attached files; fix = label before each text attachment on the wire + read_file not-found note (#1220), no tool-definition change; eval_attachments.json; open_preview gap
 - [Composer typing lag](project_composer_typing_lag.md) — 09-24: shell grid auto rows re-measured the transcript per layout pass; fix = definite rows on .app+.panes; contain:strict useless (Chrome) / 26x worse (Firefox); PR #1205, 1.8 backport #1206
 - [Server-tool usage inflates context](project_server_tool_usage_inflates_context.md) — Anthropic native web_search sums input across server iterations (ws f2ec5ec0 09-18); `resolve_context_usage` (#1193/#1196) + #1188/#1190 lane charge ON DEV since 09-20 via PR #1198 (rebase-merged: 60bfed7b, 4e677f1f); final shape = raw appended count, completion+lane charge, replay family, lane request ≠ calibration sample; #1197 = delete in-process fork copy (own PR)
 - [#1169 shared completion recovery](project_1169_shared_completion_recovery.md) — on dev 09-18 via

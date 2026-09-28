@@ -44,3 +44,6 @@ translators → UI → hardening). Brief LOCAL: `docs/design/attachments-audio-p
 Inline chip previews per kind (image/pdf thumbnail, audio player, text snippet),
 on the shared conversation vocabulary; coordinator audio pill + thumbnail-error gaps
 fixed; interactive-pane + console attachment forwarding base-prefixed and unified.
+
+How text attachments are framed on the wire, and why small models looked for them
+on disk: [[project_attachment_framing_small_models]].
