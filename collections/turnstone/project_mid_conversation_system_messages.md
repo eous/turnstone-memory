@@ -1,6 +1,6 @@
 ---
 name: project_mid_conversation_system_messages
-description: "Mid-conversation role=system turns / core/fence.py: SHIPPED v1.6.0 (PR #638); native on opus-4-8 only, others get the bracketed nonce-fenced fold (PR #726)."
+description: "Mid-conversation role=system turns / core/fence.py: SHIPPED v1.6.0 (PR #638); native on the current Claude rows (flag per row), others get the bracketed nonce-fenced fold (PR #726)."
 metadata:
   node_type: memory
   type: project
@@ -24,20 +24,34 @@ preserved; the same reshape was applied to the judge's `tool_output` fence
 [[project_envelope_nonce_tags]]. Wire-only, no migration. The `<…>`-form marker
 mentions below are the OLD shape.
 
+**UPDATE 2026-09-28 (#1227):** the native set grew with each new Claude row (see "The
+provider feature" below). On the fold path, an operator turn that follows tool results is
+appended to the last tool message, so the Anthropic converter carries it *inside* that
+`tool_result` block (verified by probing `fold_system_turns` + `_convert_messages`). The
+Sonnet 5.5 prompting guide ("Mid-turn user messages") says user text inside a
+`tool_result` block is the placement the model most often takes for injected text; a
+`system` message right after the tool results can draw the same reading. Its recommended
+shape for mid-turn user input, a user-turn text block after the last `tool_result`, is not
+implemented. Maintainer ruling: a row whose model accepts mid-conversation system messages
+sets the flag, as the other current rows do; the native path has run without trouble there.
+
 ## The provider feature (durable API facts)
 
 Anthropic **mid-conversation system messages**: append `{"role":"system"}` into the
 `messages` array (not the top-level `system` field) for operator-priority instructions
 without invalidating the cached prefix. Claude API + Claude-on-AWS only (NOT
-Bedrock/Vertex/Foundry), **claude-opus-4-8 only**, no beta header. Placement rules: must
-follow a `user` turn (incl. tool_result-bearing) or an assistant turn ending in server
-tool use; must precede an `assistant` turn or end the array; NOT first; NOT consecutive
-(merge); never between a `tool_use` block and its `tool_result`.
+Bedrock/Vertex/Foundry; platform list as of 2026-06), no beta header. Models: shipped
+for claude-opus-4-8 alone; per the API docs (2026-09-28) Fable 5/5.1, Mythos 5/5.1,
+Opus 5/5.5 and Sonnet 5.5 accept it too, while Sonnet 5 and older models do not.
+Placement rules: must follow a `user` turn (incl. tool_result-bearing) or an assistant
+turn ending in server tool use; must precede an `assistant` turn or end the array; NOT
+first; NOT consecutive (merge); never between a `tool_use` block and its `tool_result`.
 
-`supports_mid_conversation_system` capability flag is True ONLY on claude-opus-4-8 —
-NOT OpenAI/xAI (Chat Completions *accepts* mid-array system but priority is undefined;
-acceptance ≠ operator priority), NOT Google (`system_instruction` top-level-only).
-Default False = safe fallback. Mirrors `supports_reasoning_replay` conservatism.
+`supports_mid_conversation_system` capability flag is True on the fable-5, fable-5-1,
+opus-4-8, opus-5 and opus-5-5 rows (sonnet-5-5 with #1227) — NOT OpenAI/xAI (Chat
+Completions *accepts* mid-array system but priority is undefined; acceptance ≠ operator
+priority), NOT Google (`system_instruction` top-level-only). Default False = safe
+fallback for non-Anthropic lanes. Mirrors `supports_reasoning_replay` conservatism.
 
 ## What exists now (the shipped design)
 
@@ -46,7 +60,7 @@ Default False = safe fallback. Mirrors `supports_reasoning_replay` conservatism.
   `SYSTEM_TURN_SOURCES`). Killed: `_reminders` one-shot splice, the persisted
   `<tool_output>`/`<system-reminder>` content envelope, `escape_wrapper_tags`.
   Nudges are standing history, not one-shot (cooldown bounds accumulation).
-- **Wire = one fold-or-keep pass** in lowering: native (opus-4-8) keeps inline (Anthropic
+- **Wire = one fold-or-keep pass** in lowering: native rows keep inline (Anthropic
   converter is position-aware: leading system → top-level param, mid → inline, coalesce,
   placement rules); everyone else folds into the preceding turn fenced as
   `[start system-reminder_{nonce}]…[end …]` (reshaped — see UPDATE above).
