@@ -9,7 +9,7 @@ metadata:
 
 **Tracks and queue (2026-09-26):**
 - `main` (→1.9 from the 09-07/08 cutover; 1.8 emergency-only after v1.8.3; v1.8.5 09-25 = typing-lag backport + openai<3.14 cap + discord mentions); `stable/1.7` no backports (08-04); 1.6/1.5 frozen.
-- 1.9: mcp v2 #679 + coordinator MCP. Next: #900 · #901 · in_progress_snapshot sweep.
+- 1.9: mcp v2 #679 (phase 0 prep on 1.x first: #1222-#1226) + coordinator MCP. Next: #900 · #901 · in_progress_snapshot sweep.
 - Untracked-by-file: #891 #864 #802 #755 #865 #843 #797 #798 #1001 #1002. Lift family: #827 #832 #965.
 - Provider/backends design filed 09-25: #1213 provider descriptors, #1214 backends per alias (absorbs fallback), #1215 PAIR/Switchyard as backends
 - Migration head on `dev`: **077** (`077_oauth_tokens`, created 2026-09-11, down_revision 076; checked 2026-09-27 at cf70819). Before adding a migration, re-check with `ls turnstone/core/storage/migrations/versions | sort | tail -1`.
