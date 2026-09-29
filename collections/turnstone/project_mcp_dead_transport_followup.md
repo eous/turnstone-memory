@@ -85,7 +85,8 @@ SDK v2 (`mcp>=1.27,<2` pinned; v2 tracked as **issue #679**) is a breaking rewri
 not worth waiting for. v2 note (verified on 2.2.0, 2026-09-28): both signals this
 classifier keys on disappear in v2. The SDK raises `httpx2.*` rather than `httpx.*`,
 and a restarted server's 404 surfaces as `MCPError(-32600, ...)`, never the positive
-`32600`. See [[project_679_mcp_sdk_v2]].
+`32600`. #1223 moves classification to the observed HTTP status before the port.
+See [[project_679_mcp_sdk_v2]].
 
 Code confirmed live in `turnstone/core/mcp_client.py` as of 2026-07-06:
 `_user_token_sweep_loop` (~line 2188), `_static_health_loop` (~line 4428), both
