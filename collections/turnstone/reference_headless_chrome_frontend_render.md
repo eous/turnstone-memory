@@ -91,3 +91,26 @@ absolute-path dynamic imports (`import("/static/...")`) don't survive file:// UR
 - Chrome headless will not go below ~500px window width: squeeze the page's own grid column to
   test narrow panes. Set `data-theme` in a head script before first paint - flipping it from a
   module script leaves colour transitions mid-flight and pixel diffs go full-frame.
+
+**Visual-parity pixel diffs need a positive control (2026-09-29, #1229 font vendoring):** to show a
+change leaves rendering untouched (for example, moving where fonts load from), render before and
+after and compare with Pillow (`ImageChops.difference(a, b).getbbox()` is `None` when identical),
+and ALWAYS render a third variant with the thing under test removed (no web fonts). If that
+control also shows 0 differing pixels, the comparison is vacuous: on #1229 the first two
+before/after runs reported 0 px because the harness never applied the fonts at all. An inline
+`style="font-family:"Inter", ..."` attribute ends at the first inner quote, so single-quote style
+attributes whose value contains double quotes. What then worked:
+- Serve the harness and the tree over loopback HTTP with a small `http.server` handler that maps
+  `/shared/` and `/static/` to the tree (`translate_path` override): the pages and their
+  stylesheets use root-absolute paths, which a file:// harness cannot resolve without rewriting
+  CSS as well as HTML.
+- In a head script, hide the document, `await document.fonts.load('600 15px "<family>"', sample)`
+  for every family and weight in use, then unhide; write the `document.fonts` statuses onto the
+  root element and read them back with `--dump-dom`. Use `--virtual-time-budget=15000` and a fixed
+  `--window-size`.
+- Theme: headless renders the Turnstone pages dark by default. For the light theme, seed
+  `localStorage.setItem("turnstone_interface.theme", "light")` in a script at the top of `<head>`,
+  before theme.js runs; add `--force-dark-mode` for the dark renders.
+- A console page rendered without a backend shows a "Failed to load cluster data" toast at a
+  timing-dependent moment, so base and branch renders can differ in that one region. Crop it and
+  look before calling it a regression.
