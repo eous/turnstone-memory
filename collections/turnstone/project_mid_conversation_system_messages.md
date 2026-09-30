@@ -33,7 +33,22 @@ Sonnet 5.5 prompting guide ("Mid-turn user messages") says user text inside a
 `system` message right after the tool results can draw the same reading. Its recommended
 shape for mid-turn user input, a user-turn text block after the last `tool_result`, is not
 implemented. Maintainer ruling: a row whose model accepts mid-conversation system messages
-sets the flag, as the other current rows do; the native path has run without trouble there.
+sets the flag, as the other current rows do.
+
+**Placement bug (live-confirmed 2026-09-29, #1227):** the native path sent two shapes the
+API rejects with a 400, on every native row. An idle wake drops its empty user turn,
+leaving the note right after an ordinary assistant turn (`role 'system' must follow a
+'user' message or an 'assistant' message ending in a server tool result`); approval
+feedback after an advisory, or a queued message after a failed generation, puts a user
+turn right after the note (`role 'system' must precede an 'assistant' message or end the
+array`). The note persists, so every later request in the workstream failed. #1227 adds
+`_place_system_messages` to the Anthropic converter: a note that precedes user turns moves
+after them, and one that would follow an ordinary assistant turn gets a placeholder user
+turn ahead of it; placement depends only on the history, so wire prefixes stay stable for
+preserved thinking. Per-model escape hatch: `{"supports_mid_conversation_system": false}`
+in a model definition's capabilities forces the fold. Lesson: lowering-level tests pinned
+the rejected shapes (`test_native_empty_wake_user_turn_dropped`, the opus-4-8
+operator_system wire golden, a converter test); only a live request showed the 400.
 
 ## The provider feature (durable API facts)
 
