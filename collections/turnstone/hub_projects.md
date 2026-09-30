@@ -6,6 +6,7 @@ metadata:
 ---
 
 ## Shipped in the 1.8 cycle
+- [#1233 guarded fetch on httpx2](project_1233_guarded_fetch_httpx2.md) — MERGED #1238/#1239; Fetch Metadata and open_preview header rulings, redaction limits, declined review points
 - [Copy affordances](project_copy_affordances.md) — SHIPPED #944; whole-source and idle-only copy rulings settled
 - [Idle-tasks nudge](project_idle_tasks_nudge.md) — #913 MERGED; read docs/design/913-HANDOFF-fail-closed.md first; signal in the state machine, bodies = observed facts
 - [Scheduled-kind launcher + zone-aware schedules](project_scheduled_launcher_kind.md) — #1090/#1091 SHIPPED; #1099 retry policy PR #1103 (09-05): caller-chosen ws_id idempotency REJECTED, don't retry it; #1102 filed
