@@ -57,6 +57,11 @@ and calls tools can still be wrong. S-numbers such as S8 follow the issue body.
 - The 2026-07-11 beta-spike read (the port is mostly the factory swap) holds for the API surface. The classes above only show up in error paths.
 - `mcp` 2.x requires `httpx2` and neither `httpx` nor `httpx-sse`. After the port, only Turnstone's direct imports keep those two in the lock, and #1011 moves them to `httpx2`. The Anthropic and OpenAI SDKs already depend on `httpx2` only.
 
+**Private SDK seam from the #1226 fix (2026-10-02).**
+- `mcp_client.py` wraps `mcp.client.stdio._create_platform_compatible_process` at import to record each stdio server's pid. The transport owner sets a ContextVar sink only while it enters `stdio_client`, and once the transport unwinds it stops what remains of the server's process group.
+- The name and signature are the same in 1.30 and 2.2.0. The port must keep the wrapper recording; `test_spawn_hook_records_the_server_pid` fails if it stops.
+- Rejected, don't retry: a supervisor process wrapping each server. The SDK's escalation and anyio's cancelled-teardown `transport.close()` signal only the direct child, so they hit the supervisor, and a server that ignores its closed stdin survived with its helpers. Its `-I` interpreter also coerced `LC_CTYPE` into every server's environment.
+
 **How to apply:**
 - Start from the issue body.
 - Re-run its spike scripts against the current SDK before changing failure classification.
