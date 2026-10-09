@@ -6,6 +6,11 @@ metadata:
 ---
 
 ## Shipped or closed investigations
+- [OAuth shutdown waiter drain](project_oauth_shutdown_waiter_drain.md) — OAuthRuntime shutdown drains tracked waiters (1590f31d, 09-25); keep loop.stop off the drain's last iteration; submit() only on the owner loop; declined review points not to re-litigate.
+- [MCP OAuth discovery](project_mcp_oauth_discovery.md) — canonical_resource(), PRM/AS candidate loops, private-network setting and issuer-cache repair are all on dev (09-04/09-07); Entra harness not yet re-run against them.
+- [#1067 channel recovery](project_1067_channel_recovery.md) — Discord/Slack thread-to-workstream recovery after restart: immortal routes, owner column (075), conditional replace, resume_ws_exact seam, review findings.
+- [#1052 context window with a model flag](project_1052_context_window_model_flag.md) — context_window=0 falling to 32768: bootstrap flags gone; 0 = table, probe, else 32768+warn.
+- [#930 paste-to-attachment](project_paste_to_attachment.md) — built in PR #1012: pastes over 2000 code points become a pasted-text.txt attachment; fixed client threshold, not the designed setting; design decisions.
 - [Attachment framing for small models](project_attachment_framing_small_models.md) — 09-28: Nemotron 4B/30B looked on disk for attached files; fix = label before each text attachment on the wire + read_file not-found note (#1220), no tool-definition change; eval_attachments.json; open_preview gap
 - [Composer typing lag](project_composer_typing_lag.md) — 09-24: shell grid auto rows re-measured the transcript per layout pass; fix = definite rows on .app+.panes; contain:strict useless (Chrome) / 26x worse (Firefox); PR #1205, 1.8 backport #1206
 - [Server-tool usage inflates context](project_server_tool_usage_inflates_context.md) — Anthropic native web_search sums input across server iterations (ws f2ec5ec0 09-18); `resolve_context_usage` (#1193/#1196) + #1188/#1190 lane charge ON DEV since 09-20 via PR #1198 (rebase-merged: 60bfed7b, 4e677f1f); final shape = raw appended count, completion+lane charge, replay family, lane request ≠ calibration sample; #1197 = delete in-process fork copy (own PR)
