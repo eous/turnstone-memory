@@ -70,7 +70,12 @@ metadata:
   (convention; GH notes are auto-generated) -> on `main`, `scripts/release.sh X.Y.Z --push` (bump
   pyproject + __init__, `uv lock`, `chore: bump version to X`, tag, atomic push). Dry-run 09-25 for
   1.8.5 in a `--shared` clone with the remote removed: clean, uv.lock changed only the turnstone
-  line. Then check BOTH publish runs ([[project_release_forward_merge_autodelete]] - the auto-delete
+  line. Lock-revision gotcha (1.9.0a1 on dev, 10-08): Renovate's lock maintenance writes with a
+  newer uv (`revision = 5`), and release.sh's `uv lock` under the CI-pinned uv 0.9.18 rewrites it
+  to `revision = 3` with no other change. Both pass `uv lock --check` on 0.9.18; restore the old
+  revision line and amend before tagging so the bump touches only the turnstone line, else the
+  next lock maintenance flips it back. Then check BOTH publish runs
+  ([[project_release_forward_merge_autodelete]] - the auto-delete
   hazard only bites phase-1 sync PRs). Include the public site version and installer fallback in
   release checks ([[reference_static_site_release_checks]]).
 - **Local-mypy gotcha**: `uv run --with mypy mypy turnstone/` may flag 2 pre-existing `unused-ignore` in `channels/slack/bot.py` (ephemeral env resolves slack stubs differently than CI's pinned typecheck — NOT a regression, do NOT strip the ignores).
