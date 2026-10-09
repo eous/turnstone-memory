@@ -1,10 +1,10 @@
 ---
 name: feedback_dont_dismiss_as_preexisting
 description: "Bug found in code you are already editing: verify it is truly pre-existing, then fix it in place if bounded; the label is not a reason to skip."
-metadata: 
+metadata:
   node_type: memory
   type: feedback
-  modified: 2026-08-02T22:54:41.364Z
+  modified: 2026-10-05T19:40:18.399Z
 ---
 
 When a bug surfaces in code you are already editing, do not classify it as
@@ -39,3 +39,9 @@ no comment or issue can neutralize.
 - This does NOT license scope sprawl. [[feedback_minimal_scope_first]] governs
   how much *feature* to build; it is not a licence to decline a bug fix in code
   you are touching. Keep the two separate.
+- **Wire-correctness bugs are P0 (the maintainer, 2026-10-05).** If a provider
+  request can be rejected or malformed, fix it in the current branch even when it
+  predates the branch; do not file it for later or ask whether to include it. This
+  came up when review found that the Anthropic converter drops `tool_search_tool_result`,
+  which the API requires to be passed back
+  ([[project_anthropic_deferred_server_tool_calls]]).
