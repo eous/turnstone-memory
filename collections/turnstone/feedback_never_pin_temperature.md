@@ -1,9 +1,10 @@
 ---
 name: feedback_never_pin_temperature
 description: "Setting temperature or reasoning_effort anywhere, even judges or utility calls: never pin in code; alias > stored setting > model def > omit on wire."
-metadata: 
+metadata:
   node_type: memory
   type: feedback
+  modified: 2026-10-08T01:53:46.598Z
 ---
 
 Never pin `temperature` or `reasoning_effort` in code — not even `0.0`/"low" for "deterministic" lanes (judges, extractors, utility calls). **The ruled assignment scheme (the maintainer, 2026-07-13): per-model alias value > operator-stored global setting > in-code model definition (effort only: `caps.default_reasoning_effort`) > field OMITTED from the wire — the inference engine is relied on to handle the omitted field.** Gate on `supports_temperature`-style caps.
@@ -13,3 +14,5 @@ Never pin `temperature` or `reasoning_effort` in code — not even `0.0`/"low" f
 **How to apply:** route every rung through `model_turn.resolve_temperature_setting`/`resolve_effort_setting` (the ONE pair; session factories and /model switch included — never hand-roll a copy). Caller-explicit args are only for relaying operator/user-resolved knobs. **There is NO caller-default rung, effort included** (the maintainer, 2026-07-13 follow-up, killing my `default_reasoning_effort="low"` attempt): local lanes forward effort VERBATIM (`effort_passthrough`) with the template as sole validity authority and NO defined vocabulary/floor — a code-chosen token is unvetted, and on manual-thinking boxes it flips `enable_thinking` on for lanes the operator never engaged. This supersedes the 2026-06-27 "utility `reasoning_effort='low'` stays" convention. Budget-capped lanes cope honestly instead: generous `max_tokens` sized for a full thinking pass at the model's own default + hard short-output prompt rules (title gen: 8192 + 3-word max), and visible degradation with the alias-effort remediation (guard llm_error rows). Test fakes of ConfigStore must mirror the real get() (registry default on miss) — a None-on-miss fake masked this bug class. Related: [[project_judge_completion_interlingua]], [[project_utility_completion_thinking_budget]], [[feedback_runtime_toggles_settings_registry]], [[project_configstore_default_vs_empty]].
 
 **Reaffirmed 2026-09-12:** The maintainer floated a global default of `high` (arguing it works on more models than `medium`, which vLLM DeepSeek-V4.1 rejects); pushed back with the per-lane cost table (Anthropic 4096→16384 budget, OpenAI medium→high, local manual toggles flipped on) and they dropped it. `high` is the right SNAP target, not a default; the narrow fix is a declared-values capability row so the snap runs. See [[project_973_no_thinking_posture_hosted_lanes]].
+
+**Amended 2026-10-07 (#1292 scoping, the maintainer):** an explicitly set role-scoped effort setting overrides the alias: `model.task_effort` for task agents and `coordinator.reasoning_effort` for coordinators. For role-scoped calls the order is role setting > alias > stored global > model definition > omit. Before this, `resolve_effort_setting` checked the alias before `role_key`. The same day the maintainer ruled that the code-chosen thinking-off posture for utility calls (title, compaction, web_fetch extraction) is to be replaced, with a utility role alias as the operator's lever, and that `model.max_tokens` stays set by default (per-purpose budgets clamp to the alias instead). Plan: [[project_1292_alias_settings]].
