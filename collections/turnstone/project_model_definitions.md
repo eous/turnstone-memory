@@ -12,6 +12,9 @@ Model definitions moved from config.toml-only to database-backed storage (migrat
 
 **API keys**: Write-only pattern (hybrid judge+MCP). Writes allowed, reads always return "***", sentinel preserves existing on update. `is_secret` settings also changed to write-only (was 403 blocked).
 
+A `secret://` reference may stand in for the key (#1329): it is not a secret, so reads show it
+verbatim, and the registry resolves it at load; see [[project_1329_secret_references]].
+
 **Context window**: 0 = auto-detect. DB models inherit CLI-detected value (same fallback chain as config.toml models). Runtime `_resolve_capabilities()` still merges with provider capability table.
 
 **Admin UI**: Models tab in System group with sky blue (--blue) accent. Provider badges (openai=blue, anthropic=magenta), source badges (config=read-only, db=editable), sync-pending indicator.
