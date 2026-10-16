@@ -1,9 +1,10 @@
 ---
 name: commit-artifact-cleanliness-what-not-to-include
 description: "Writing a commit, PR body, code comment or planning doc: no tool attribution or product names (even homages); design notes stay local in docs/design/."
-metadata: 
+metadata:
   node_type: memory
   type: feedback
+  modified: 2026-10-12T10:13:02.966Z
 ---
 
 Consolidated rules for what to keep OUT of commits, code, and generated artifacts (plus one output-path rule). All are standing user preferences.
@@ -18,7 +19,7 @@ Consolidated rules for what to keep OUT of commits, code, and generated artifact
 
 **Design docs are local-only, and they live in the `docs/design/` FOLDER — don't invent root planning files.** Put planning/design/working notes in `docs/design/*.md` (the usual place), NOT a root `BRIEFING.md` / `PROGRESS.md` / etc. They are never committed: `git status` should show them untracked; never `git add`. *Why:* design docs evolve during implementation and aren't a stable deliverable (user pushback on PR #424); at ~50K LOC/week paths/signatures/line-refs rot within days, so a committed doc misleads more than it helps. Summarize the rationale inline in the PR description; keep the doc local. **Recurrence 2026-07-12:** created a root `BRIEFING.md` as a working plan, then a single `git add -A` (instead of naming files) swept it into a feature-branch commit; the xhigh finder caught it and it took a cherry-pick history rewrite to remove. Two guards: (1) planning docs go in `docs/design/`, not root — that's the usual convention; (2) prefer naming files in `git add` over `-A` so untracked local docs can't hitch a ride.
 
-**PR bodies describe what changed, not what was skipped.** Keep the PR description to the actual changes; don't add a "left as-is / out of scope / benign noise" section cataloguing things you deliberately didn't touch. *Why:* user trimmed exactly this from PR #641 as noise. The triage of benign-vs-real belongs in the chat thread; the PR body is a record of the change. Same lean posture as the no-tombstone rule. (Genuine follow-ups a reader needs — known-unfixed bugs, the next PR in a sequence — are fine; the ban is on cataloguing non-changes.)
+**PR bodies describe what changed, not what was skipped.** Keep the PR description to the actual changes; don't add a "left as-is / out of scope / benign noise" section cataloguing things you deliberately didn't touch. *Why:* user trimmed exactly this from PR #641 as noise. The triage of benign-vs-real belongs in the chat thread; the PR body is a record of the change. Same lean posture as the no-tombstone rule. **No "Not in this PR" section either** (the maintainer dropped it from the house style on 2026-10-12, #1366, although #1367 and earlier PRs carried one): the body is `## Summary`, `## Changes`, `## Verification` (results only, including live checks), then `Fixes #N`.
 
 **No process meta in PR bodies.** Don't describe HOW the change was reviewed (review rounds,
 tooling, methodology) or mention account or quota limits hit along the way. The PR body is about the

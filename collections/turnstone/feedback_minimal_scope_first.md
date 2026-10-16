@@ -19,3 +19,10 @@ a 063-style backfill. Each was approved as it came, and the maintainer had to as
 PR was doing immutability work; the expansion was reverted into #1312 and #1320. **How to apply:**
 when a ruling or a review fix would add a mechanism the PR's purpose does not need, say so before
 building it, offer the issue instead, and recount the PR's scope against its title each round.
+
+**Again on #997 (2026-10-14).** The avatars branch took in hardening of the image decoders it
+shares with chat attachments, one review fold-in at a time, each the maintainer's pick; by round 3
+the branch's purpose had to be restated. Each fold-in was offered, its cumulative size never was.
+**How to apply:** with each fold-in question, state the branch's running scope (its purpose, what
+else it now carries, how big each part is), and offer a separate branch that lands first beside
+"fold in".

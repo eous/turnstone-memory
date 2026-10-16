@@ -1,6 +1,6 @@
 ---
 name: feedback_stdio_findings_out_of_scope
-description: "MCP finding with only a stdio consequence: file an issue, keep it out of the PR; stdio servers are getting rare."
+description: "MCP finding with only a stdio consequence: file an issue, keep it out of the PR; stdio servers are getting rare, and operators are steered to MCP over HTTP (#1326)."
 metadata:
   type: feedback
 ---
@@ -15,3 +15,9 @@ a PR's scope.
 running, a pipe left open), first check whether the defect underneath also affects HTTP transport
 owners. If it does, say so and judge it on the HTTP consequence. If it is stdio-only, propose an
 issue and leave it out of the PR.
+
+**Direction (2026-10-09):** the maintainer wants operators steered to MCP over HTTP, each server in
+its own container, rather than stdio servers inside `turnstone-server`. #1322 asked for stdio
+servers mounted into the server from image volumes; declined, because third-party code would share
+the server's user, filesystem and network, and a mounted image runs on Turnstone's runtime, not
+its own. The chart feature that replaces it is #1326 (one Deployment and Service per MCP server).

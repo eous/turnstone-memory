@@ -21,3 +21,12 @@ path-forward checklist; caveats in a Scope section at the end. Use reference-sty
 (`blob/<head sha>/path#Lnn`) so the raw markdown stays readable; check each line at the head SHA and
 render through `gh api markdown` (mode gfm, repo context) before posting. Related:
 [[feedback_artifact_cleanliness]], [[feedback_finish_the_fix_spree]].
+
+**Severity mapping.** The review pipeline rates findings critical/major/minor/nit; in the GitHub
+table, critical becomes High, major becomes Medium, and minor and nit become Low.
+
+**Keep it short (maintainer, 2026-10-12, #1351).** The first draft of the #1351 review was 5,500
+characters; the maintainer said it was a bit long, and the posted version was 2,500. One or two
+sentences per What happens / Impact / Evidence; a code snippet only for the fix; permalinks only
+where the text points at code; Scope in one short paragraph; optional Low items that are one line
+can live in the table alone. A review that asks for a change is posted as request-changes.

@@ -1,6 +1,6 @@
 ---
 name: project_design_constraints
-description: "Design defaults for turnstone: BREAKING beats shims, scale to ≤100 nodes, simpler wins, OIDC guards inert without OIDC, no pacing PRs for reviewer fatigue."
+description: "Design defaults for turnstone: BREAKING beats shims, scale to ≤100 nodes, simpler wins, OIDC guards inert without OIDC, no pacing PRs, Linux first with macOS best effort."
 metadata:
   type: project
 ---
@@ -19,3 +19,9 @@ feature work unless a ruling says otherwise:
   enterprise deployments that use them.
 - **Don't pace PRs for reviewer fatigue.** Bundling related work into one PR is fine when it saves
   review round-trips.
+- **Linux first; macOS is best effort (maintainer, 2026-10-12, reviewing #1351 and #1352).** There
+  is no dedicated macOS CI runner and none is planned. Minimal changes that help macOS users are
+  welcome, but macOS users are not a primary target. **How to apply:** in review, ask for the
+  smallest change that makes macOS work; don't propose a macOS CI job or tests that pin macOS
+  portability; and keep what Linux CI checks unchanged (a macOS skip must not be able to fire on
+  Linux).
