@@ -6,6 +6,13 @@ metadata:
 ---
 
 ## Shipped or closed investigations
+- [#1313 MCP shutdown drain](project_1313_mcp_shutdown_drain.md) — #1313 MCP shutdown drain: the maintainer's rulings and the invariants to keep.
+- [#1281 hosted-item replay](project_1281_openai_hosted_item_replay.md) — OpenAI Responses hosted-item replay (#1281, 10-05): replay shapes the API accepts, its one namespace rule, why search results/sources are not replayed, the capability gate.
+- [Anthropic deferred server-tool calls](project_anthropic_deferred_server_tool_calls.md) — Anthropic web_search mixed with client tool calls comes back unrun and runs on the next request; user text before then 400s every request. Wire repair built 10-05, live-probed.
+- [#1268 saved-session paging](project_1268_saved_pagination.md) — #1268 saved-session paging (branch fix/1268-saved-session-pagination): the maintainer's rulings (updated = last conversation change, column drops, one page loader) and declined review points.
+- [#988 owner lease](project_988_owner_lease.md) — #988 workstream owner lease (branch feat/988-workstream-owner-lease off dev 3a046487): the maintainer's rulings 1-20, path C decisions D1-D6, and the local docs to read before coding.
+- [#963 delegated-auth extraction](project_963_oauth_extraction.md) — #963 delegated-auth extraction (oauth -> {mcp, model}): plan at docs/design/963-oauth-extraction.md, reviewed 2026-09-10; verified facts, open recommendations, and the one wording error to fix.
+- [Frontend render corruption](project_frontend_render_corruption.md) — Garbled frontend output on fast streams or renderer.js sentinel escapes: SSE batching + overflow poison (#805/#812) and the NUL-only renderer strip.
 - [OAuth shutdown waiter drain](project_oauth_shutdown_waiter_drain.md) — OAuthRuntime shutdown drains tracked waiters (1590f31d, 09-25); keep loop.stop off the drain's last iteration; submit() only on the owner loop; declined review points not to re-litigate.
 - [MCP OAuth discovery](project_mcp_oauth_discovery.md) — canonical_resource(), PRM/AS candidate loops, private-network setting and issuer-cache repair are all on dev (09-04/09-07); Entra harness not yet re-run against them.
 - [#1067 channel recovery](project_1067_channel_recovery.md) — Discord/Slack thread-to-workstream recovery after restart: immortal routes, owner column (075), conditional replace, resume_ws_exact seam, review findings.
