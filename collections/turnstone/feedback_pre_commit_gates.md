@@ -1,9 +1,10 @@
 ---
 name: pre-commit-quality-gates-lint-review-docs
 description: "Before any commit or push: ruff+mypy (Python only) plus an unprimed /review per chunk, fix rounds included; never pipe pytest, read its summary line first."
-metadata: 
+metadata:
   node_type: memory
   type: feedback
+  modified: 2026-10-15T05:23:22.815Z
 ---
 
 The user expects a consistent set of quality gates on EVERY commit and push, not just the final one. Apply all of the following before staging/committing, and re-run lint before pushing.
@@ -19,11 +20,12 @@ The user expects a consistent set of quality gates on EVERY commit and push, not
 - **Why (caught the hard way 2026-06-16):** a backgrounded `pytest -m "not live" | tail` reported "exit code 0" (tail's) while pytest had `1 failed`; a chained commit+release shipped a tag (v1.7.0a2) on a red gate. The failure was flaky (`test_tls_client` passes 15/15 in isolation; re-run was 7514/7514) — but the process was wrong regardless.
 - **Run the local full suite as `-m "not live"`, not CI's selection.** CI deselects `e2e_recovery` as well, so a break in the SSE end-to-end harness goes unnoticed there: in #988 the harness's custom session factory swallowed a new `workstream_lease` kwarg for two review rounds (2026-10-03).
 - **Read the SUMMARY LINE** (`N passed` with NO `failed`/`error`), not just the exit code, before committing/tagging/pushing on a suite's strength.
+- **When the full run is skipped, pick the targeted files by grepping tests for every symbol the change touches**, not by file name: patched names (`mcp_client.ClientSession`), constructor calls whose keywords changed, attributes a `getattr` fallback used to cover. #1395 (2026-10-14): moving the log level into `ClientSession(log_level=...)` passed the three MCP files I ran and failed 29 tests in three others, whose fakes didn't take the keyword; CI caught it.
 - **Never chain `commit`/`release`/`push` after a suite in one unconditional command.** Run the suite → READ the result → commit/release as a SEPARATE step gated on green. A red gate (even a suspected flake) stops the release until the failure is re-run in isolation and explained.
 
 ## Review (use the /review skill)
 - **Always run code + security review before committing — even for small chunks.** This is a consistent quality gate: review → fix → commit for every chunk, not just large ones.
-- **Use the `/review` slash command, NOT the single-pass `code-reviewer` subagent.** `/review` is the multi-stage pipeline (4 parallel specialist finders → verify → dedupe → synthesize → final markdown report). *Why:* parallel finders + a verify step that re-reads cited source catch more, and the structured report matches the user's review-fix cycle; the single-pass agent is shallower and has missed things in practice.
+- **Use the `/review` slash command, NOT the single-pass `code-reviewer` subagent.** `/review` is the multi-stage pipeline (six parallel finders → verify → sanity → final markdown report; see [[feedback_large_review_orchestration]]). *Why:* parallel finders + a verify step that re-reads cited source catch more, and the structured report matches the user's review-fix cycle; the single-pass agent is shallower and has missed things in practice.
 - **Stage the new + modified files first** (`git add <paths>`) so the diff the pipeline reads reflects the actual change set — untracked new files are invisible to a base-tree diff otherwise.
 - **Run reviews incrementally**, after each logical chunk completes (storage layer → API endpoints → SDK methods, etc.), not batched at the end of a large feature. *Why:* catches issues early instead of deferring all review to the end.
 
@@ -32,10 +34,10 @@ The user expects a consistent set of quality gates on EVERY commit and push, not
 - **Do NOT steer the re-review at the fix code.** Steering finder attention ("focus especially on …") makes findings artificially converge — the #819 lesson ([[feedback_review_convergence_methodology]]): delta-steered rounds measure attention allocation, not convergence, and #819's unprimed round 6 found 2 CRITICALs after five steered rounds looked clean. The re-review runs unprimed over the ENTIRE change (scope = what the diff is, e.g. "branch X vs main"; never where to look inside it). Caught a second time same day when I steered the round-2 review at the fix locations.
 
 ## Sanity before fixing
-- After dedupe returns its findings, **always run the sanity stage on the deduped finder set BEFORE applying any fixes** (`subagent_type: "code-review-sanity"`) — even when findings look like targeted, well-cited, obviously valid bugs.
+- After verify returns its verdicts, **always run the sanity stage, which also merges duplicates, BEFORE applying any fixes** (`subagent_type: "code-review-sanity"`) — even when findings look like targeted, well-cited, obviously valid bugs.
 - *Why:* sanity's highest-value output isn't validating individual fixes — it's identifying **choke points** where one targeted change collapses multiple findings into a single concise edit. Without it the model tends to fix finding-by-finding, producing N edits where one well-placed edit would do: bigger diffs, more review surface, more places for a future regression to slip through.
 - Read sanity's output for collapse opportunities before opening the first Edit (e.g. if two bugs share one guard, fix the guard once). The cost is one extra agent call; the upside compounds.
-- Skipping sanity is acceptable only in tightly-scoped, single-finding cases with no chance of overlap.
+- Skipping sanity is acceptable only in tightly-scoped, single-finding cases with no chance of overlap, when a round's finders return fewer than 10 findings in total (verify, then triage in-session), or for standard changes such as a model capability row, where the maintainer drops the back-half agents (see [[feedback_large_review_orchestration]]).
 
 ## Docs before committing
 - **Update all relevant documentation as part of the same commit as the code**, not as an afterthought: `README.md` (if user-facing behavior changed), `docs/*.md` (feature docs), `docs/diagrams/*.puml` + regenerated PNGs, and `PROGRESS.md` (local-only — track what was done).
