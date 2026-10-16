@@ -105,6 +105,13 @@ this repository alongside Turnstone. Its `CLAUDE.md` loads when the session star
 the memories, so no setup step is required. Each session VM starts from fresh clones, so a
 pointer installed there with `setup.py` lasts only as long as that VM.
 
+## Skills
+
+`skills/` holds Claude Code skills used in Turnstone development, starting with `/review`, the
+multi-stage code review that several memories refer to. [skills/README.md](skills/README.md)
+describes each one and how to install it. Skills are not memories: the index and the scanner skip
+them, so they are reviewed by hand and change through an ordinary maintenance branch.
+
 ## Contribute memories
 
 A collection has one file per memory. The filename is its identity:
