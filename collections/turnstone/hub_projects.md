@@ -33,11 +33,18 @@ metadata:
 - Open/deferred: [id consistency](project_task_agent_id_consistency.md) — task_agent sub-tool ids: mint FIXED #820; main-loop ids fixed at ingest, never on the wire
 - Open/deferred: [Model modal kind](project_model_modal_kind_redesign.md) — Kind-aware model modal still deferred; only the backend rerank-detect fix shipped 2026-06-01
 - Open/deferred: [Memory relevance](project_memory_relevance_pipeline.md) — Prefix memory injection: composed once after first user turn, then frozen; per-turn refresh unbuilt
+- Open/deferred: [#1108 video input](project_1108_video_input.md) — #1108 video attachments: attempt 1 parked 09-06 with round-2 review unfixed; read docs/design/1108-video-attempt-1-lessons.md first; rulings stand.
+- Open/deferred: [Background task agents](project_background_task_agents.md) — Building task_agent(run_in_background): spike done 2026-07-10, unbuilt; build on PR #820's sub-agent id mint with per-agent cancel_event and a registry.
+- Open/deferred: [Server-tool follow-up order](project_server_tool_followups_priority.md) — Recommended order (given 2026-09-19) for the follow-up issues filed from the server-tool usage campaign (#1188-#1197), with the reasoning, so a compaction does not lose it
+- Open/deferred: [#1187 model-requested compaction](project_1187_model_requested_compaction.md) — #1187 research bet (model-requested compaction, usage floor, long-context pricing boundary): what the repo can and cannot measure today, and how it touches the #1188 lane charge
+- Open/deferred: [#872 working-directory grants](project_workstream_working_dir_grants.md) — Workstream working directory or worktree support (#872): a frozen launch-time grant with explicit (node_id, path), not workspace state; no grant = today.
 
 ## Side projects and environment
 - Env/side: [Memory-store maintenance](reference_memory_store_maintenance.md) — Back up scoped
   edits, verify replacements, isolate test databases
 - Env/side: [Understone door game](project_understone_doorgame.md) — never name the homage source; server owns all numbers, model narrates only
+- Env/side: [Native node troubleshooting](project_native_node_troubleshooting.md) — Native node failures after a venv rebuild or with container-only DNS: inspect the running interpreter and choose a node-reachable search endpoint.
+- Env/side: [README harness diagram](project_readme_harness_diagram.md) — Proofreading or regenerating README docs/diagrams/harness.png: 'inci.' typo is DELIBERATE, never fix it; README image URLs use the media LFS endpoint.
 
 ## Completed, 1.7 history and don't-redo
 - Don't-redo: [plan_agent](project_plan_agent_removed.md) — REMOVED 07-01; ship planning discipline as a skill on task_agent instead
