@@ -1,6 +1,6 @@
 ---
 name: project_1201_deepseek_responses_reasoning_replay
-description: "PR #1201: DeepSeek 'reasoning_text must be passed back' 400 on Responses tool rounds; the author rewrote it 09-25 into a first-class switchyard provider."
+description: "PR #1201: DeepSeek 'reasoning_text must be passed back' 400 on Responses tool rounds; rewritten 09-25 as a switchyard provider; 10-09: stays open, skip in triage."
 metadata: 
   node_type: memory
   type: project
@@ -33,7 +33,12 @@ replay recipe on dev: Models-tab definition (config.toml cannot set `replay_reas
 provider openai-compatible, capabilities JSON `{"server_compat": {"api_surface": "responses"},
 "supports_reasoning_replay": true}`, replay toggle on; never run live against DeepSeek by us.
 
-**Decision 2026-09-25 (the maintainer):** reply posted as issuecomment-5841628268 and the PR closed:
+**2026-10-09 (the maintainer):** #1201 stays open; skip it in PR triage, don't propose closing it,
+and check with the maintainer before acting on the 09-26 ruling below, which is what the PR
+thread says.
+
+**Decision 2026-09-26 (the maintainer):** a PR review replaced the first reply and its close; the
+PR stays open while replay identity keyed on the provider name is designed in #1213. The review:
 named provider declined (#1077 line), docstring attribution disowned, "dismantled" premise
 answered with #1203 data + the row-move finding, the openai-compatible recipe given (hedged), the
 identity wart acknowledged with no schedule, live DeepSeek acceptance invited on #1202; caveated

@@ -114,3 +114,24 @@ attributes whose value contains double quotes. What then worked:
 - A console page rendered without a backend shows a "Failed to load cluster data" toast at a
   timing-dependent moment, so base and branch renders can differ in that one region. Crop it and
   look before calling it a regression.
+
+**Compositor cost, not just main-thread cost (2026-10-09, login input lag —
+[[project_backdrop_filter_input_lag]]):** a per-keystroke `execCommand` + forced-layout probe only
+sees style and layout. A cost in the display compositor (blur, filters, big re-composites) reads
+as ~0.3 ms there while the user sees lag. Two ways to catch it in headless (no CDP):
+- **rAF pacing while typing:** insert one character per rAF for 3 s and record the rAF
+  timestamps. Slow viz draws apply backpressure that throttles rAF, so fps and p50 frame interval
+  track the whole pipeline (60 fps clean; 30, 19 or 7.7 fps with a full-viewport blur). Also run
+  an idle window (caret blinks only).
+- **Startup trace:** `--trace-startup=viz,cc,gpu,blink,benchmark,toplevel,disabled-by-default-devtools.timeline
+  --trace-startup-file=<f> --trace-startup-duration=20`. Chrome 148 writes protobuf unless you add
+  `--trace-startup-format=json`. Poll until the file stops growing before you kill Chrome; a
+  fixed sleep lost one trace. Then sum `DirectRenderer::DrawFrame` on `VizCompositorThread`.
+- Firefox headless: `MOZ_HEADLESS_WIDTH`/`HEIGHT` were not reliably honoured through the snap
+  wrapper (use `--width/--height`). Without `privacy.reduceTimerPrecision=false`, sub-ms timings
+  read as 0 or 1.
+- **Virtual time hides dialog `close` events (10-09):** under `--virtual-time-budget`, a
+  `dialog.close()` followed by a short timer read the state before the queued `close` event fired
+  (0 fired, so onClose seemed not to run). Probe close handlers in real time and post the result
+  to a loopback sink. The livepass console harness freezes `window.fetch` (a promise that never
+  settles), so report with `XMLHttpRequest` there.

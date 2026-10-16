@@ -10,9 +10,11 @@ metadata:
 **Tracks and queue (2026-09-26):**
 - `main` (→1.9 from the 09-07/08 cutover; 1.8 emergency-only after v1.8.3; v1.8.5 09-25 = typing-lag backport + openai<3.14 cap + discord mentions); `stable/1.7` no backports (08-04); 1.6/1.5 frozen.
 - 1.9: mcp v2 #679 (phase 0 prep on 1.x first: #1222-#1226) + coordinator MCP. Next: #900 · #901 · in_progress_snapshot sweep.
-- Untracked-by-file: #891 #864 #802 #755 #865 #843 #797 #798 #1001 #1002. Lift family: #827 #832 #965.
+- Untracked-by-file: #891 #864 #802 #865 #843 #797 #798 #1001 #1002. Lift family: #827 #832 #965.
 - Provider/backends design filed 09-25: #1213 provider descriptors, #1214 backends per alias (absorbs fallback), #1215 PAIR/Switchyard as backends
-- Migration head on `dev`: **077** (`077_oauth_tokens`, created 2026-09-11, down_revision 076; checked 2026-09-27 at cf70819). Before adding a migration, re-check with `ls turnstone/core/storage/migrations/versions | sort | tail -1`.
+- Migration head on `dev`: **083** (`083_user_avatars`, #997, after #1359's `082_pin_default_model`; checked 2026-10-14 at d0f3bb2a). Before adding a migration, re-check with `ls turnstone/core/storage/migrations/versions | sort | tail -1`.
+
+**2026-10-14:** v1.8.7 (backport of the image hardening, dev's read_file image typing and a curl floor in the Dockerfile) and v1.9.0a3 released, tag first for the stable one. Release-time gotcha: `scripts/release.sh` runs `uv lock`, and a uv older than the one that last wrote `uv.lock` (Renovate's lock maintenance) rewrites its `revision` line (5 to 3 at 1.9.0a3, caught before the push). Read the bump commit's `uv.lock` diff before pushing: it should change only the version line. The local uv moved to 0.13.1 the same day; #1387 moves CI's pins.
 
 **2026-09-10:** integration branch is `dev` (22 ahead of `main`).
 
@@ -60,23 +62,36 @@ metadata:
 - **PATCH-ID GOTCHA (learned v1.7.4)**: `git cherry`/patch-id hashes the WHOLE commit incl. generated `uv.lock`, so a commit already backported can show as `+missing` when its lockfile regenerated differently (e.g. greenlet s390x/riscv64 wheel drift). Confirm TRUE presence by CONTENT before re-picking — compare source trees excluding uv.lock, or trust the `-x` "(cherry picked from)" trailer cross-checked against a source diff. Separately, cherry-picking a changelog-touching commit and dropping its conflicting CHANGELOG hunk during resolution ALSO flips its patch-id (code stays identical) — expected; handle the changelog centrally in the final `docs(changelog)` commit, not per-commit.
 - **v1.7.3 tagged 2026-07-10** (stable/1.7 = only actively-patched stable line).
 - **v1.7.2 SHIPPED STABLE 2026-07-08** — patch-id backport of **23 commits** from main into stable/1.7 (chose to absorb now rather than carry across 1.8's larger churn). Migration head **066** on BOTH main and stable/1.7 (066 = scheduled-task persona/project cols, additive/reversible). Notable rollups: preview pane #800, scheduled-task persona+project, SSE fast-stream overflow recovery (+coordinator pane), renderer containment, nudge/wake hardening, Content-Disposition wire-safety, HYPOTHESIS daemons+PRIMER.
-- **Release recipe (the maintainer 09-25; docs/releasing.md covers only phase 1; the stable/1.7-era
-  patch-id recipe is superseded)**: `main` = current stable, `dev` = next. Branch flow is PHASED:
-  (1) right after a new stable minor ships, user reports dominate, so fixes land on `main` and sync
-  `main` -> `dev` by merge commit (1.8.2, 1.8.3 are dev ancestors); (2) once work shifts to `dev`
-  (1.8: from ~09-07/08), fixes land on `dev` and reach `main` as focused cherry-pick PRs, with NO
-  post-release forward merge (1.8.4's backports, changelog and bump stay main-only; dev still reads
-  1.8.3). 1.8.5 = PR #1206 (cherry-pick -x of #1205). Release: `docs: prepare X changelog` commit
-  (convention; GH notes are auto-generated) -> on `main`, `scripts/release.sh X.Y.Z --push` (bump
-  pyproject + __init__, `uv lock`, `chore: bump version to X`, tag, atomic push). Dry-run 09-25 for
-  1.8.5 in a `--shared` clone with the remote removed: clean, uv.lock changed only the turnstone
-  line. Lock-revision gotcha (1.9.0a1 on dev, 10-08): Renovate's lock maintenance writes with a
-  newer uv (`revision = 5`), and release.sh's `uv lock` under the CI-pinned uv 0.9.18 rewrites it
-  to `revision = 3` with no other change. Both pass `uv lock --check` on 0.9.18; restore the old
-  revision line and amend before tagging so the bump touches only the turnstone line, else the
-  next lock maintenance flips it back. Then check BOTH publish runs
-  ([[project_release_forward_merge_autodelete]] - the auto-delete
-  hazard only bites phase-1 sync PRs). Include the public site version and installer fallback in
+- **Release recipe (the maintainer 09-25 and 10-09; docs/releasing.md now documents both modes and
+  the tag-first order; the stable/1.7-era patch-id recipe is superseded)**: `main` = current
+  stable, `dev` = next. The maintainer names two modes: **tock**, right after the first release of
+  a new stable line (1.8), fixing user escalations, so fixes land on `main` and merge `main` ->
+  `dev` by merge commit (1.8.2, 1.8.3 are dev ancestors); **tick** (current since ~09-07/08), fixes
+  land on `dev` and are backported to `main` as focused cherry-pick PRs when needed, NEVER `main`
+  -> `dev` (1.8.4, 1.8.5 and 1.8.6 stay main-only). In tick mode the post-release forward merge
+  does not happen, so after a stable patch, dev's chart `appVersion` still names the previous
+  patch: open a small `dev` PR (`appVersion` to the release, chart patch `version` +1) once the
+  image is published (1.8.6: branch `fix/dev-chart-1.8.6`). 1.8.5 = PR #1206 (cherry-pick -x of
+  #1205). Release, TAG FIRST (the maintainer 10-09 chose a recipe-only fix, no script change):
+  `docs: prepare X changelog` commit (stable releases only, by convention; GH notes are
+  auto-generated; pre-releases keep `## [Unreleased]` with no prep commit, as at v1.8.0a2,
+  v1.8.0a4, v1.9.0a1 and v1.9.0a2) -> on `main`, `scripts/release.sh X.Y.Z` WITHOUT `--push`
+  (bump pyproject + __init__ + the chart's `appVersion` and patch `version` (#1330), `uv lock`,
+  `chore: bump version to X`, tag) -> `git push origin vX.Y.Z` alone -> wait for BOTH publish runs
+  -> `git push origin main` -> in tick mode the dev chart PR. Why: the release commit moves the
+  chart's default image, so the 1.8.6 atomic push left `main`'s chart naming an image that did not
+  exist until the tag's CI and publish finished (~30 min). `--push` stays fine for pre-releases
+  (dev's chart names a published stable). Same order for `stable/X.Y` patches and the promotion.
+  Dry-run 09-25 for 1.8.5 in a `--shared` clone with the remote removed: clean, uv.lock changed
+  only the turnstone line. Lock-revision gotcha (1.9.0a1 on dev 10-08, again at 1.9.0a2 10-12):
+  Renovate's lock maintenance writes with a newer uv (`revision = 5`), and release.sh's `uv lock`
+  under the CI-pinned uv 0.9.18 rewrites it to `revision = 3` with no other change. Both pass
+  `uv lock --check` on 0.9.18; restore the old revision line and amend before pushing so the bump
+  touches only the turnstone line, else the next lock maintenance flips it back. release.sh tags as
+  it commits, so even a pre-release runs without `--push` first: restore line 2, `uv lock --check`,
+  `git commit --amend --no-edit`, `git tag -f vX`, then `git push --atomic origin dev vX`. Then
+  check BOTH publish runs ([[project_release_forward_merge_autodelete]] - the auto-delete hazard
+  only bites tock-mode sync PRs). Include the public site version and installer fallback in
   release checks ([[reference_static_site_release_checks]]).
 - **Local-mypy gotcha**: `uv run --with mypy mypy turnstone/` may flag 2 pre-existing `unused-ignore` in `channels/slack/bot.py` (ephemeral env resolves slack stubs differently than CI's pinned typecheck — NOT a regression, do NOT strip the ignores).
 - **v1.7.0 SHIPPED STABLE 2026-07-05** (headline = Personas #683/#757). [[project_1_7_roadmap]] tracks rollforward.
