@@ -15,7 +15,6 @@ metadata:
 - Audio: [Provider audio APIs](reference_provider_audio_apis.md) — Voice I/O backend: OpenAI audio wire protocol everywhere; Anthropic has none; vLLM-Omni for OSS
 - Audio: [vLLM omni chat-audio](reference_vllm_omni_audio.md) — vLLM omni audio: stock image lacks vllm[audio]; wav + thinking off + prompt-then-audio
 - Tooling: [Headless Chrome render](reference_headless_chrome_frontend_render.md) — Frontend unverifiable without a server? headless chrome on a file:// harness in the sandbox
-- Tooling: [PlantUML render](reference_plantuml_render.md) — Re-rendering a docs/diagrams/*.puml after editing it: the system plantuml (1.2020) fails on `!theme plain`; use a current plantuml jar, and never let a failed render overwrite the committed PNG.
 - [Dual design challenge](reference_dual_design_challenge.md) — Independent design reviews: use the same neutral brief, verify claims against source, and measure disagreements before deciding.
 - [Entra OBO harness](reference_entra_obo_harness.md) — Standing up a live oauth_obo MCP test against a real Entra tenant on the docker dev cluster: app regs, the admin-consent quirk, broker/server deploy, HTTPS trust, Azure policy gotchas.
 - [Small-model repro without a GPU](reference_small_model_repro_without_gpu.md) — Reproducing a small-model bug without a GPU: llama.cpp llama-server on a CPU-only cloud box, turnstone-eval flags that give real rates, speeds, baseline venv, hosted models.

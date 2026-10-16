@@ -44,7 +44,6 @@ metadata:
   edits, verify replacements, isolate test databases
 - Env/side: [Understone door game](project_understone_doorgame.md) — never name the homage source; server owns all numbers, model narrates only
 - Env/side: [Native node troubleshooting](project_native_node_troubleshooting.md) — Native node failures after a venv rebuild or with container-only DNS: inspect the running interpreter and choose a node-reachable search endpoint.
-- Env/side: [README harness diagram](project_readme_harness_diagram.md) — Proofreading or regenerating README docs/diagrams/harness.png: 'inci.' typo is DELIBERATE, never fix it; README image URLs use the media LFS endpoint.
 
 ## Completed, 1.7 history and don't-redo
 - Don't-redo: [plan_agent](project_plan_agent_removed.md) — REMOVED 07-01; ship planning discipline as a skill on task_agent instead
