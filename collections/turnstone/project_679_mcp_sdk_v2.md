@@ -1,8 +1,10 @@
 ---
 name: project_679_mcp_sdk_v2
-description: "#679 MCP SDK v2 port (refreshed 09-28 vs mcp 2.2.0): phase 0 prep #1222-#1226 on 1.x, then a legacy-era port; silent failure classes; feature matrix in the issue."
+description: "#679 MCP SDK v2 port (refreshed 09-28 vs 2.2.0; floor 2.3; 2.3 behaviors verified 10-14): phase 0 #1222-#1226 on 1.x, then PR #1395 with phase 2 folded in; the 10-14 rulings."
 metadata:
+  node_type: memory
   type: project
+  modified: 2026-10-15T04:49:16.999Z
 ---
 
 The plan of record is the #679 issue body, rewritten 2026-09-28 against `mcp` 2.2.0. It has a
@@ -14,7 +16,8 @@ releases, the tree and the phase 0 issues before relying on any version number o
 - v2 went stable on 2026-07-28 (2.0.0). Then came 2.1.0/2.1.1 (08-24/25), 2.0.1 (08-26) and 2.2.0 (09-07).
 - 1.x is a maintenance line with critical and security fixes only. 1.30.0, our lock, carries backports of the 2.2 same-origin redirect policy, the AS-issuer validation and the idle-session expiry. So the `<2` pin is not a security exposure.
 - The reason to move is protocol reach (the 2026-07-28 revision), plus the plumbing #680/#681 need.
-- Target floor `mcp>=2.2,<3`. 2.1 is the first release whose client-side validation accepts boolean sub-schemas.
+- Target floor `mcp>=2.3,<3` (the maintainer moved it from 2.2 on 2026-10-09; the issue body and title carry it). 2.1 is the first release whose client-side validation accepts boolean sub-schemas.
+- 2.3.0 (2026-10-02; release notes read 10-09, not yet spiked) adds `max_sse_event_size=` on `streamable_http_client` and `StreamableHttpParameters` (default stays 1 MiB, `None` lifts it; needs `httpx2>=2.10`), the setting S8 lacked. It also stops sending an empty `_meta`/`params` on legacy connections, which 2.2 sent and some servers reject. Issue matrix rows 21-22.
 
 **Phasing.**
 - Phase 0 lands on 1.x first, as sub-issues of #679 filed 2026-09-28:
@@ -40,7 +43,7 @@ and calls tools can still be wrong. S-numbers such as S8 follow the issue body.
 - **`message_handler` receives the notification itself.** `.root` is gone, and a raising handler is now logged instead of fatal, so push refresh would die quietly.
 - **An `httpx.AsyncClient` passed as `http_client` is not rejected.** Connect, list, call and `list_changed` all work with one, so a half-port passes smoke tests. Assert `httpx2.AsyncClient` in the factory. The migration guide's warning that server-initiated messages stop arriving did not reproduce on 2.2.0 legacy sessions.
 - **One malformed tool fails the whole `tools/list`.** Client-side schema validation rejects a third-party tool whose `inputSchema` is `{}`, missing, or not an object type, and raises `pydantic.ValidationError` for the entire list. There is no public switch: validation runs inside `send_request`, before the caller's result type. Decided 2026-10-02 (#1224): a validation failure on any catalog page fails the server with `InvalidCatalogError`, naming the entry and the field. It is not a breaker failure, and the static health loop retries it every 5 min. A static server also withdraws the tools, resources and prompts kept from its last good connect, and syncs prompt templates at once (maintainer's choices; the sync is global, so deferring it only moves the deletion to an arbitrary later sync): with no breaker count, a dispatch to a kept tool would rerun the full connect on every call. Pool entries keep their catalogs, because a dispatch reconnect is how live per-user sessions recover (#836). A refresh that meets an invalid catalog keeps the last good one and retries every health tick like any failed refresh. A slower refresh retry was tried and reverted: the push-refresh design relies on that retry running promptly to clear the error after a single-kind push succeeds. Do not publish the valid entries around a malformed one. On 1.x, `call_tool` re-lists any tool missing from the SDK's output-schema cache after the tool has run, so a lenient list turns successful calls into errors after their side effects; 2.x has no public per-item path either. The port must keep the `ValidationError` → `InvalidCatalogError` wrap in `_list_catalog` (2.x raises the same pydantic type).
-- **SSE events over 1 MiB fail as a dropped stream (S8).** v2 reads SSE through `httpx2.EventSource` at its default 1 MiB cap, and the SDK exposes no setting. An oversized result fails as `MCPError(-32000, 'SSE stream ended without a response')`, and the real cause is logged only at DEBUG. `-32000` is `CONNECTION_CLOSED`, which `_is_dead_transport` reads as a dead transport, so a healthy session is evicted and the breaker counts a failure. SDK-built servers send a `str` result twice (`content` and `structuredContent`), so about 512 KiB of text is enough. 1.30's `httpx-sse` has no cap (a 6 MB event arrives), so only a phase 0 test can catch this before the port. The fix needs upstream: a size setting on `streamable_http_client`, or a distinct error.
+- **SSE events over 1 MiB fail as a dropped stream (S8).** v2 reads SSE through `httpx2.EventSource` at its default 1 MiB cap, and the SDK exposes no setting. An oversized result fails as `MCPError(-32000, 'SSE stream ended without a response')`, and the real cause is logged only at DEBUG. `-32000` is `CONNECTION_CLOSED`, which `_is_dead_transport` reads as a dead transport, so a healthy session is evicted and the breaker counts a failure. SDK-built servers send a `str` result twice (`content` and `structuredContent`), so about 512 KiB of text is enough. 1.30's `httpx-sse` has no cap (a 6 MB event arrives), so only a phase 0 test can catch this before the port. The fix needed upstream a size setting on `streamable_http_client` or a distinct error; 2.3.0 shipped the setting only, so an event over whatever cap the port picks still reads as a dead transport.
 
 **Verified on 1.30 through `MCPClientManager`, so not v2 changes (2026-09-28).**
 - A static-path call that gets a 401 or 5xx waits out the full tool timeout, and the breaker records nothing (#1223).
@@ -61,6 +64,49 @@ and calls tools can still be wrong. S-numbers such as S8 follow the issue body.
 - `mcp_client.py` wraps `mcp.client.stdio._create_platform_compatible_process` at import to record each stdio server's pid. The transport owner sets a ContextVar sink only while it enters `stdio_client`, and once the transport unwinds it stops what remains of the server's process group.
 - The name and signature are the same in 1.30 and 2.2.0. The port must keep the wrapper recording; `test_spawn_hook_records_the_server_pid` fails if it stops.
 - Rejected, don't retry: a supervisor process wrapping each server. The SDK's escalation and anyio's cancelled-teardown `transport.close()` signal only the direct child, so they hit the supervisor, and a server that ignores its closed stdin survived with its helpers. Its `-I` interpreter also coerced `LC_CTYPE` into every server's environment.
+
+**Verified on 2.3.0 (2026-10-14: SDK source, plus a probe against a raw 2025-11-25 server).**
+- The SDK's own era probe, `negotiate_auto` (`mcp/client/_probe.py`, private), is a denylist:
+  every `MCPError` from `server/discover` falls back to `initialize()`, except `-32022` naming
+  only modern versions we don't share. A legacy server that answers the probe with HTTP 400, 405,
+  422 or 500 still connects through it, as it does with an initialize-only connect. A fallback of
+  our own must be no stricter: one that refused to fall back whenever the response hook captured
+  a 4xx or 5xx left the 405, 422 and 500 servers unreachable in the probe.
+- The streamable-HTTP transport already handles a non-2xx answer to a request
+  (`_handle_post_request`): a JSON-RPC error body, even with `id: null`, is re-sent under the
+  request's id. With no such body, a 404 before any session becomes `-32601 'Not Found'`, a 404
+  on a held session `-32600 'Session terminated'`, and anything else `-32603 'Server returned an
+  error response'`. Only an id-less error inside a 2xx answer goes uncorrelated.
+- A bare `ClientSession` refuses an `InputRequiredResult` with a plain `RuntimeError`: "Server
+  returned InputRequiredResult; pass allow_input_required=True to receive it and retry
+  <method>(...)" (`_input_required_unexpected`). A classifier keyed on that text needs a test that
+  raises it through the SDK; a hand-typed copy of the string had already drifted from it.
+- `httpx2` verifies TLS through `truststore` (the OS store) unless `SSL_CERT_FILE` or
+  `SSL_CERT_DIR` is set; `httpx` used certifi. Starlette's `TestClient` runs on `httpx2`, and
+  `mcp` 2.x pulls in neither `httpx` nor `httpx-sse`, so a package that imports `httpx` (the
+  Understone tests did) must declare it or move to `httpx2`.
+
+**Outcome and rulings (2026-10-14).** The port went up as PR #1395, in three commits: the port
+with phase 2 adoption folded in, a pass that keeps the client off SDK internals, and an SSE test
+fix. The maintainer's rulings that day:
+- Phase 2 rides with the port (discover with fallback, `subscriptions/listen`, discover as the
+  liveness probe, catalog TTLs from cache hints, a resource response cache, a header-mismatch
+  retry, and the `log_level` and `resource_subscriptions` settings), rather than splitting it out.
+- The response cache sharing `public`-scoped reads among a per-user server's users is accepted
+  for now and documented (#1388); changing it is a session of its own.
+- `set_log_level` no longer re-stamps live sessions. The client-side filter of notifications
+  outside an active subscription and the pruning of the SDK's tool caches were deleted (the spec
+  puts the first duty on the server; the SDK prunes a complete listing itself).
+- Private SDK names: [[feedback_private_sdk_names_fail_loudly]]. Names: [[feedback_no_relative_era_names]].
+- Follow-ups filed: #1389 (tidy-ups), #1390 (a request for input reaches the model as SDK text),
+  #1391 (a result over 16 MiB evicts the session), #1392 (OAuth rules, matrix row 11), #1393, #1394.
+
+**Test trap (verified 2026-10-14).** A v2 test server negotiates 2026-07-28 and answers in plain
+JSON, so a test of anything specific to SSE framing (the 16 MiB event cap, S8) passes vacuously
+unless it forces a 2025-11-25 session: answer `server/discover` with a 404 (`RefuseDiscover` in
+tests/test_mcp_http_failures.py) and assert the session's `protocol_version`. Past the cap, a
+2025-11-25 session's call fails with `CONNECTION_CLOSED` ("SSE stream failed: Server-sent event
+exceeded the 16777216 byte limit."), which still evicts the session (#1391).
 
 **How to apply:**
 - Start from the issue body.
