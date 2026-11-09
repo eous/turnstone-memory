@@ -1,10 +1,10 @@
 ---
 name: feedback_symmetry_expansion_via_documentation
-description: "Review flags a sibling surface your fix could cover: file an issue, never a deferral comment (RETRACTED); re-verify preconditions before expanding."
+description: "Review flags a sibling surface your fix could cover: file an issue and leave no deferral comment in the code; re-verify preconditions before expanding."
 metadata:
   node_type: memory
   type: feedback
-  modified: 2026-07-29T07:37:18.364Z
+  modified: 2026-10-20T05:51:21.000Z
 ---
 
 **Retracted clause (the maintainer, 2026-07-29): "foreclose a next-round

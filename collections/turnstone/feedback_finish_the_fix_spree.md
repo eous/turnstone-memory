@@ -1,10 +1,10 @@
 ---
 name: feedback-finish-the-fix-spree
-description: "Bug-fix branch (the maintainer 2026-09-05, mid-#1099): one review round after the fix, no follow-up issues from the branch, ship; supersedes 2-clean-rounds."
+description: "Bug-fix branch (the maintainer 2026-09-05, mid-#1099): one review round after the fix, then ship; supersedes 2-clean-rounds."
 metadata:
   node_type: memory
   type: feedback
-  modified: 2026-09-25T18:30:00.320Z
+  modified: 2026-10-20T05:47:56.000Z
 ---
 
 The maintainer, 2026-09-05, mid-#1099: this was the longest multi-session bug-fix spree the project
@@ -14,7 +14,9 @@ rate the work would never finish.
 **Why:** the review pipeline plus the file-every-finding rule turns each fix
 into a generator of new issues; the backlog grows faster than it shrinks, and
 the sessions never reach "done".  On #1099 three review rounds and one
-follow-up (#1102) preceded the PR.
+follow-up (#1102) preceded the PR.  The rule against filing follow-up issues from a fix branch,
+which came with this note, was removed on 2026-10-19 at the maintainer's request: it let
+pre-existing problems found in review go untracked.
 
 **How to apply:**
 - One review round per fix, run after the fix is complete.  Fix confirmed
@@ -35,13 +37,6 @@ follow-up (#1102) preceded the PR.
   dedup with NO verify stage: spawn code-review-verify → code-review-dedupe → code-review-sanity on
   its JSON output (2026-09-25 OAuth round 3: verify refuted 5 of 8 using measurements handed over as
   raw facts; sanity confirmed the 3 declines).
-- An issue the maintainer asks for is filed regardless of the no-follow-ups rule
-  (2026-09-19: #1197, delete the in-process fork copy, their call after I
-  called it a "legacy path" and they asked why we keep one).
-- Do not file follow-up issues from a fix branch.  A pre-existing finding
-  gets one line in the PR body.  File an issue only for something that would
-  block a release.  This narrows [[feedback_symmetry_expansion_via_documentation]]
-  ("no deferral comments, file the issue") to the release-blocking case.
 - Decide design questions the issue leaves open in one pass with the
   simplest bounded option ([[feedback_minimal_scope_first]]); do not iterate
   designs through review rounds.

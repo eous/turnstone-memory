@@ -4,7 +4,7 @@ description: "Bug found in code you are already editing: verify it is truly pre-
 metadata:
   node_type: memory
   type: feedback
-  modified: 2026-10-05T19:40:18.399Z
+  modified: 2026-10-26T00:00:00.000Z
 ---
 
 When a bug surfaces in code you are already editing, do not classify it as
@@ -39,6 +39,11 @@ no comment or issue can neutralize.
 - This does NOT license scope sprawl. [[feedback_minimal_scope_first]] governs
   how much *feature* to build; it is not a licence to decline a bug fix in code
   you are touching. Keep the two separate.
+- **A gap in a mechanism the branch added is in scope (the maintainer, 2026-10-26, #1490).** A
+  finder tagged the update audit's verbatim OAuth audience as pre-existing because base copied every
+  value verbatim, but the branch had added the audit's URL masking and its CHANGELOG claimed full
+  URLs no longer land there. The maintainer: the masking is ours, so its gap is in scope. Judge
+  scope by whose mechanism and whose claim the gap breaks, not by the finder's origin tag.
 - **Wire-correctness bugs are P0 (the maintainer, 2026-10-05).** If a provider
   request can be rejected or malformed, fix it in the current branch even when it
   predates the branch; do not file it for later or ask whether to include it. This
