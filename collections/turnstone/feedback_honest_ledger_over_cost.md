@@ -30,3 +30,13 @@ which the old code kept. Judge any reopen, fork or restore design by whether
 it rebuilds the prefix the workstream already had (system message, skill message, history), since
 every change also costs a cold prefix cache. A skill committed to a workstream stays in it
 ([[project_1292_alias_settings]]).
+
+**Transforms apply at ingestion, never when stored content is lowered (the maintainer,
+2026-10-21, #1445):** my first fix flattened transparent images in the wire builder, so the next
+request after an upgrade would have replayed every image a conversation had already sent with
+different pixels, and history loads and exports would have decoded legacy formats. The ruling:
+keep already stored images intact and transform only new uploads (and new `read_file` results),
+storing the transformed bytes as the attachment. A new rendering rule for stored content is a
+change to the lowering code, which HYPOTHESIS.md names as a way a reopen rewrites the past; put it
+where content enters the state instead, and pin with a test that lowering leaves stored content
+unchanged. Related: [[reference_vision_api_transparency]].
