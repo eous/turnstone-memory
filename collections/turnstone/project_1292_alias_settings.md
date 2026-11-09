@@ -4,7 +4,7 @@ description: "#1292 (requests send values that differ from the alias): scope not
 metadata:
   node_type: memory
   type: project
-  modified: 2026-10-08T13:14:02.584Z
+  modified: 2026-11-09T00:34:07.175Z
 ---
 
 #1292 is an audit of request settings (temperature, effort, max_tokens) that differ from the model
@@ -65,3 +65,8 @@ alias-changing path (#1214 backends) would have to remember.
 
 **How to apply:** start from the scope note; its "Open questions" section lists what is still
 undecided.
+
+**PR E's lever narrowed (maintainer, 2026-11-08):** `model.utility_alias` was ruled too broad. The
+role built is web_fetch only, `tools.web_fetch_alias` (PR #1590,
+[[project_1192_web_fetch_model_role]]); titles and compaction keep the session's model. If PR E
+still removes the thinking-off posture, it relies on that role or adds a compaction lever then.
