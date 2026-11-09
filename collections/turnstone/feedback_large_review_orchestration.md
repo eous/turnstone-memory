@@ -1,10 +1,10 @@
 ---
 name: feedback_large_review_orchestration
-description: "Any /review: six finder agents (incl. regression, simplification), verify (1..n), optional sweep for high stakes, one sanity that merges (no dedupe); big diffs add slices and time-boxed briefs."
+description: "Any /review: six finder agents (incl. regression, simplification), verify (1..n), optional sweep, one sanity that merges; tiny non-production diffs: bug+quality; ~45-line fixes: one reviewer."
 metadata:
   node_type: memory
   type: feedback
-  modified: 2026-10-13T22:43:59.283Z
+  modified: 2026-10-21T18:13:15.000Z
 ---
 
 For a **large branch-wide `/review`** (the user asked to review the whole 31-commit big-bang branch vs `origin/main` — 128 files / 22.6k diff lines), the patterns the user steered me toward / that worked:
@@ -19,6 +19,24 @@ For a **large branch-wide `/review`** (the user asked to review the whole 31-com
 **Two full-branch finders join every round (since #988 round 2, 2026-10-03).** Beside the slice finders, each round runs a regression finder (an inventory of every behavior change against the base, each classified intended, unintended or unclear against CHANGELOG, docs/architecture.md and the maintainer's rulings, with small probes allowed) and a simplification finder (a mechanism inventory from only the problem statement and the diff, then a minimal design and the path to it, and only then a check against the design notes and rulings). The first catches behavior drift outside the feature's own mechanism; the second turns fix-breeds-finding chains into design questions. In #988 round 3 I launched only the 16 slice finders because my written round plan listed only those, and the maintainer noticed. Build each round's launch list from what the previous round actually launched (its prompts and output files), not from a summarized plan, and reuse those prompts with only the commit, paths and rulings updated.
 
 **Small diffs too (maintainer, 2026-10-10, #1342).** A one-slice fix review (6 files, ~300 changed lines) launched only the `review` skill's four default finders, and the maintainer asked to add the regression and simplification finders. The skill's four-finder default does not override this: every round's launch list is the four dimension finders plus these two, whatever the diff's size, with `reg-N` and `simp-N` ids so verify and sanity key them apart.
+
+**Tiny tooling diffs take two finders (maintainer, 2026-10-18, #1394).** For a change of about 50
+lines that touches no production code (a ruff pin in pyproject and pre-commit, a Renovate group, a
+one-assert guard test, one SIM117 site), the maintainer stopped the six-finder launch: bug and
+quality are enough at that size. **How to apply:** for config, CI, lockfile or test-only diffs this
+small, run the bug and quality finders, then verify, with the under-10-findings in-session triage
+below. A diff that changes production behavior keeps all six at the #1342 size (a ~300-line
+production fix); a much smaller one can take a single reviewer, as the next paragraph says.
+
+**Small production fixes take one reviewer per round (maintainer, 2026-10-21, #1452).** For a bug
+fix of about 45 production lines in one function (plus tests, a docs sentence and a changelog
+entry), the maintainer said a single `code-reviewer` agent was enough. Each round was one agent
+with a go/no-go brief over the whole staged diff: the rulings, my own calls marked open to
+challenge, earlier rounds' taken and declined findings with their reasons, and the ground rules.
+Round 2 caught a regression in round 1's own fix (a UTF-32 byte order mark matching the UTF-16
+check), so the fix-round rule still holds at this size; round 3 was clean, and its wording-only
+fixes shipped without another round. **How to apply:** for a production fix this small, offer
+one reviewer per round instead of the six finders; keep the six for fixes the size of #1342.
 
 **Regression and simplification are real agent types; dedupe is gone (maintainer, 2026-10-12, during the #1351 review).** Launch them as `code-review-find-regression` and `code-review-find-simplification` rather than general-purpose agents with hand-written briefs; the `/review` command now launches all six on every review. The dedupe stage was deleted and its merge folded into `code-review-sanity`. **Why:** larger reviews often run several verifiers, one per batch or slice, but always exactly one sanity, so only sanity sees every batch and can catch duplicates across them. A verifier may still mark `duplicate_of` within its own batch as a hint. **How to apply:** the back half is verify (one or several), then one sanity given every finding, every verdict set, the finder failures and the regression finder's `intended` list.
 

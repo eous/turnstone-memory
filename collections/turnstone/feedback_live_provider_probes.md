@@ -1,8 +1,10 @@
 ---
 name: feedback_live_provider_probes
-description: "Before a live provider probe (-m live, livepass.py): exhaust offline instruments first; hosted calls need the maintainer's OK; a local Qwen server needs no ask."
+description: "Before a live provider probe (-m live, livepass.py): exhaust offline instruments first; hosted calls need an OK; a local vLLM needs no ask; model-facing changes get one local e2e check."
 metadata:
+  node_type: memory
   type: feedback
+  modified: 2026-11-01T12:46:09.679Z
 ---
 
 Live provider API calls (`-m live`, `scripts/livepass.py`, ad hoc probes) are a last-resort
@@ -24,4 +26,13 @@ verification step. Unanswered vendor-side questions can stay open; bound the ris
   only time, so probes and eval sweeps against it need no ask; use it to settle a question
   before spending on hosted runs. Review and verifier agents still stay off it: they add load,
   and nobody scheduled their runs with the maintainer.
+- **Model-facing changes, the maintainer 2026-11-05 (web_fetch links):** when a change's goal
+  is a model's behavior (prompt wording, what a tool hands a model), offline tests prove only
+  what reaches the model. Before the commit, run one end-to-end check on the local model: real
+  inputs through the real code path, with only the network and the model call swapped, and
+  score the answers. That run showed the extraction model still padding a requested link list
+  with URLs recalled from training, which no unit test could have shown.
 - Keep probe logistics out of PRs, issues, commit messages and other outward artifacts.
+- A test list built by grep picks up `*_live.py` modules, and pytest has no default marker filter
+  here, so they run for real: pass `-m "not live"` on any widened run. It happened on 2026-11-01
+  (#1529): two such modules sent `GET /v1/models` to `localhost:8000` and got a 404.

@@ -1,10 +1,10 @@
 ---
 name: pre-commit-quality-gates-lint-review-docs
-description: "Before any commit or push: ruff+mypy (Python only) plus an unprimed /review per chunk, fix rounds included; never pipe pytest, read its summary line first."
+description: "Before any commit or push: ruff+mypy (Python only) plus an unprimed /review per chunk, fix rounds included; targeted tests only, CI runs the full suite; never pipe pytest."
 metadata:
   node_type: memory
   type: feedback
-  modified: 2026-10-15T05:23:22.815Z
+  modified: 2026-10-21T00:31:41.046Z
 ---
 
 The user expects a consistent set of quality gates on EVERY commit and push, not just the final one. Apply all of the following before staging/committing, and re-run lint before pushing.
@@ -20,7 +20,10 @@ The user expects a consistent set of quality gates on EVERY commit and push, not
 - **Why (caught the hard way 2026-06-16):** a backgrounded `pytest -m "not live" | tail` reported "exit code 0" (tail's) while pytest had `1 failed`; a chained commit+release shipped a tag (v1.7.0a2) on a red gate. The failure was flaky (`test_tls_client` passes 15/15 in isolation; re-run was 7514/7514) — but the process was wrong regardless.
 - **Run the local full suite as `-m "not live"`, not CI's selection.** CI deselects `e2e_recovery` as well, so a break in the SSE end-to-end harness goes unnoticed there: in #988 the harness's custom session factory swallowed a new `workstream_lease` kwarg for two review rounds (2026-10-03).
 - **Read the SUMMARY LINE** (`N passed` with NO `failed`/`error`), not just the exit code, before committing/tagging/pushing on a suite's strength.
+- **Before opening a PR, the full suite need not run locally; CI runs it.** The maintainer's ruling on #1389 (2026-10-19). Run the touched and symbol-grepped files locally, and read CI's result before calling the PR green.
+- **Nor between review gates.** The maintainer, #1416 (2026-10-21), when I started a full `-m "not live"` run after a fix round, before the next review, ruled it out: a full run there costs 10 to 20 minutes and tells the next review nothing it needs. A fix round runs the test files its changes reach (picked by symbol grep, as below) and its mutant controls, then goes straight to the next review.
 - **When the full run is skipped, pick the targeted files by grepping tests for every symbol the change touches**, not by file name: patched names (`mcp_client.ClientSession`), constructor calls whose keywords changed, attributes a `getattr` fallback used to cover. #1395 (2026-10-14): moving the log level into `ClientSession(log_level=...)` passed the three MCP files I ran and failed 29 tests in three others, whose fakes didn't take the keyword; CI caught it.
+- **A change that stops swallowing an error reaches every test that builds the real object.** #1377 (2026-10-19): the channel router's model lookup used to log and return `""` on any failure. I grepped tests for the method's name, ran three files, and missed a recovery test that builds a real `ChannelRouter` and had passed only because the swallow hid a DNS failure; the review's regression finder caught it. Grep for the class's constructions (`ChannelRouter(`) as well as the method.
 - **Never chain `commit`/`release`/`push` after a suite in one unconditional command.** Run the suite → READ the result → commit/release as a SEPARATE step gated on green. A red gate (even a suspected flake) stops the release until the failure is re-run in isolation and explained.
 
 ## Review (use the /review skill)
@@ -28,6 +31,11 @@ The user expects a consistent set of quality gates on EVERY commit and push, not
 - **Use the `/review` slash command, NOT the single-pass `code-reviewer` subagent.** `/review` is the multi-stage pipeline (six parallel finders → verify → sanity → final markdown report; see [[feedback_large_review_orchestration]]). *Why:* parallel finders + a verify step that re-reads cited source catch more, and the structured report matches the user's review-fix cycle; the single-pass agent is shallower and has missed things in practice.
 - **Stage the new + modified files first** (`git add <paths>`) so the diff the pipeline reads reflects the actual change set — untracked new files are invisible to a base-tree diff otherwise.
 - **Run reviews incrementally**, after each logical chunk completes (storage layer → API endpoints → SDK methods, etc.), not batched at the end of a large feature. *Why:* catches issues early instead of deferring all review to the end.
+
+## Broad sweeps: a lighter per-commit gate (maintainer, 2026-10-20, the #1011 httpx removal)
+- For a sweep split into several commits across many modules (the last httpx 1.x consumers: 20 modules in five slices on one branch), each commit's gate is ruff, mypy, the impacted tests (picked by symbol grep, as above) and one single-pass `code-reviewer` agent. The full suite (`-m "not live"`) and the `/review` pipeline run once at the end, over the whole branch.
+- *Why:* a pipeline per commit would cost five full reviews for mostly mechanical change; one pipeline over the finished branch still sees every slice's seams together.
+- *How to apply:* offer this for multi-slice sweeps; ordinary chunks keep the `/review`-per-chunk default above.
 
 ## Fix rounds get their own review — UNPRIMED (user catches, 2026-07-10)
 - **Code written in RESPONSE to review findings is new, unreviewed code.** A review of the pre-fix diff does not cover the fixes — if applying findings added substantial code (a new module/pass/seam, not a one-line tweak), run the review again before pushing/PR. Caught on the sub-tool id PR: the pre-fix review ran, the fixes added a whole lowering pass + a session counter, and the push was about to go out with that code unreviewed (the user had to ask whether it had been reviewed).

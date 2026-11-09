@@ -31,3 +31,12 @@ more days), the rows came back but the question was not raised again, and the ne
 bug and regression finders both reported it as a major finding. When the maintainer reverses a
 ruling, list the questions answered since it and re-ask each one whose answer depended on it, or
 apply that question's original recommended option and say so, before the next review round.
+
+**An option's cost includes its failure modes (#1377, 2026-10-19).** Offering "one cache, no
+dedup" against a single shared fetch, I priced it as "a few cheap reads" in a burst. The review
+then measured a console stall piling up one request per caller in the router's shared connection
+pool, and a per-message lookup turning any failed refresh into dropped DMs on a path that never
+needed the value. The maintainer had picked the option on the cheaper description; I said so and
+re-asked with the measured costs. **How to apply:** for an option that removes deduplication, a
+fallback or a cache, price it under an outage or stall and on every caller path, including paths
+that don't need the value, not only in the steady state.
