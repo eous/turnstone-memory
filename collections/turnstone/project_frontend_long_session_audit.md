@@ -96,4 +96,4 @@ compositable, aria-live flip; **P3** infra (HTTP/2 per #540, MRU stream cap,
 delegated listeners, defer katex/hljs).
 
 Related: [[project_frontend_lshell_renovation]], [[project_sse_fanout_pending]],
-[[feedback_sse_queue_not_a_bottleneck]], [[project_understone_doorgame]]
+[[project_understone_doorgame]]

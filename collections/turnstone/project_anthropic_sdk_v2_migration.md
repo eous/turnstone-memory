@@ -1,6 +1,6 @@
 ---
 name: project_anthropic_sdk_v2_migration
-description: "anthropic SDK 2.x (= API version 2026-10-21) upgrade, branch chore/anthropic-sdk-v2 (2026-10-23): the rulings, the X-Api-Key parity design, live-verified facts, and the open Entra/Foundry follow-up."
+description: "anthropic SDK 2.x (API version 2026-10-21) upgrade, PR #1480: the rulings, the X-Api-Key parity design, live-verified facts, and the open Entra/Foundry follow-up."
 metadata:
   node_type: memory
   type: project

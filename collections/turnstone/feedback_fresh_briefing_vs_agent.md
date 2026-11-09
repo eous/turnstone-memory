@@ -49,5 +49,5 @@ Sonnet needs over-prescription, including the code snippets. Earlier: don't over
 room to explore and arrive at a proper solution. ALWAYS transfer the hard constraints regardless of
 tier (what must NOT change — a just-shipped file's pinned test shape, a behavior that must stay).
 This **supersedes the 2026-06-10 "pre-make the design decisions" note for fable/opus executors** —
-that note's mechanical-known-transform port is the exception, not the rule. Sibling of
-[[feedback_runbook_trust_llm]] (state requirements, not code).
+that note's mechanical-known-transform port is the exception, not the rule. The same holds for
+prose an agent will follow, such as a runbook: state requirements, not code.

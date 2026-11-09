@@ -74,5 +74,5 @@ proxy-cache vs hotlink IdP picture URLs — hotlinking leaks viewer IPs to the
 IdP and breaks on token-gated URLs, so local proxy-cache is the likely call.
 
 Related: [[project_pr750_multiuser_context_review]] (1.7 shared-context work),
-[[feedback_operator_ui_plain_language]], [[feedback_chip_contrast]] (attribution
+[[feedback_operator_ui_plain_language]], [[feedback_css_change_gates]] (attribution
 chips must meet the ≥0.15α floor), [[project_copy_affordances]].

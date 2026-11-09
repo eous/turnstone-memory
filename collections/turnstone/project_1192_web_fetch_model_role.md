@@ -1,6 +1,6 @@
 ---
 name: project_1192_web_fetch_model_role
-description: "web_fetch model role tools.web_fetch_alias (PR #1590, 2026-11-08): the maintainer's rulings (web_fetch only, empty = caller's model, listed for agents, refused before approval) and follow-ups."
+description: "web_fetch model role tools.web_fetch_alias (PR #1590): rulings (web_fetch only, empty = caller's model, listed for agents, refused before approval) and follow-ups."
 metadata:
   node_type: memory
   type: project

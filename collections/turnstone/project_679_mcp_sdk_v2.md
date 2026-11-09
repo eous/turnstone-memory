@@ -115,4 +115,4 @@ exceeded the 16777216 byte limit."), which still evicts the session (#1391).
 
 Related: [[project_mcp_resilience]], [[project_mcp_dead_transport_followup]],
 [[project_1_7_roadmap]] (pre-refresh history), [[project_963_oauth_extraction]],
-[[project_1050_anthropic_sdk_v1]] (the HTTPX2 precedent), [[feedback_stable_deadline_memory_staleness]].
+[[project_1050_anthropic_sdk_v1]] (the HTTPX2 precedent).

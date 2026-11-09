@@ -38,12 +38,23 @@ metadata:
 - Open/deferred: [Server-tool follow-up order](project_server_tool_followups_priority.md) — Recommended order (given 2026-09-19) for the follow-up issues filed from the server-tool usage campaign (#1188-#1197), with the reasoning, so a compaction does not lose it
 - Open/deferred: [#1187 model-requested compaction](project_1187_model_requested_compaction.md) — #1187 research bet (model-requested compaction, usage floor, long-context pricing boundary): what the repo can and cannot measure today, and how it touches the #1188 lane charge
 - Open/deferred: [#872 working-directory grants](project_workstream_working_dir_grants.md) — Workstream working directory or worktree support (#872): a frozen launch-time grant with explicit (node_id, path), not workspace state; no grant = today.
+- Open/deferred: [#1329 secret references](project_1329_secret_references.md) — #1329 secret:// references (v1, references only): where resolution hooks in, the resolver-only outage fallback, the gates, dropped designs, Vault/OpenBao wire facts.
+- Open/deferred: [#1325 unread and judge-pending markers](project_1325_unread_judge_pending.md) — #1325 unread marker, unread-aware eviction, judge-evaluating marker: the 10-09 scope rulings.
+- Open/deferred: [#1340 ask_user tool](project_ask_user_tool.md) — #1340 ask_user: the rulings (non-blocking, bottom pane, preview in v1, top-level web and CLI only) and why it does not ride the approval gate.
+- Open/deferred: [#997 user icons](project_997_user_icons.md) — #997 user icons: the 10-13/14 rulings (initial on six colours, write scope to change, one PNG upload per person, admin reset, IdP import later).
+- Open/deferred: [#998 multi-user attribution UX](project_multiuser_attribution_ux.md) — #998, after #997: tool-row attribution is a server-side projection-time derivation; never weaken the scrub pins.
+- Open/deferred: [#973 no-thinking posture](project_973_no_thinking_posture_hosted_lanes.md) — #973: the utility no-thinking posture is inert on hosted openai-compatible thinking lanes; rulings: no default-high.
+- Open/deferred: [Replay identity in the Turn IR](project_replay_identity_ir_origin.md) — Replace producer=provider_name with a binding-derived origin (09-25); both design challenges said adopt with changes; minimal scope.
+- Open/deferred: [MCP image tool results](project_1158_mcp_image_results.md) — PR #1158: wanted, but blocked on external object storage support (#1116).
 
 ## Side projects and environment
 - Env/side: [Memory-store maintenance](reference_memory_store_maintenance.md) — Back up scoped
   edits, verify replacements, isolate test databases
 - Env/side: [Understone door game](project_understone_doorgame.md) — never name the homage source; server owns all numbers, model narrates only
 - Env/side: [Native node troubleshooting](project_native_node_troubleshooting.md) — Native node failures after a venv rebuild or with container-only DNS: inspect the running interpreter and choose a node-reachable search endpoint.
+- Env/side: [Dev box test environment](project_dev_box_test_env_gotchas.md) — Before headless Chrome (locked keyring: --password-store=basic), an SDK boundary failure (needs a lock-matching env) or a red test_doctor seeded-model test (reads ~/.config/turnstone).
+- Env/side: [Code velocity](project_velocity.md) — A brief or memory older than 1-2 weeks: the tree churned ~22K LOC/week in late September, so re-spike cited file:line locations before coding.
+- Env/side: [Shared memory repo](project_memory_sync_repo.md) — Shared development memory format and workflow: generated indexes, scoped local notes, explicit contributions, read-only consumer setup.
 
 ## Completed, 1.7 history and don't-redo
 - Don't-redo: [plan_agent](project_plan_agent_removed.md) — REMOVED 07-01; ship planning discipline as a skill on task_agent instead
