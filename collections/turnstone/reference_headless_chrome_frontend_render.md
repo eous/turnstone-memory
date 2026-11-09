@@ -1,6 +1,6 @@
 ---
 name: headless-chrome-renders-the-frontend-in-sandbox-server-boot-blocker-doesn-t-apply
-description: "Frontend render check when the server won't boot: google-chrome --headless in the sandbox renders a file:// or loopback harness; no CDP, never pkill -f chrome."
+description: "Frontend checks with google-chrome --headless: a file:// or loopback harness, or CDP over the venv's aiohttp against a scratch node+console (works off-sandbox); never pkill -f chrome."
 metadata: 
   node_type: memory
   type: reference
@@ -46,8 +46,9 @@ that time, but this would have caught CSS/render bugs earlier).
   `pkill -f chrome` matches and kills its own shell (exit 137/144, empty output; reads as a
   mysterious hang). Use a fresh `--user-data-dir=$(mktemp -d)` per run to dodge singleton-lock
   collisions instead of killing.
-- **`--remote-debugging-port` / CDP is blocked** in the sandbox — launching with it kills the
-  shell (signal). No Puppeteer-style WS driving; `--screenshot` and `--dump-dom` only.
+- **`--remote-debugging-port` / CDP was blocked in the 2026-05 sandbox** (launching with it killed
+  the shell). It works in a normal session on the dev box (2026-10-22, #1464): see the live
+  scratch-cluster recipe at the end.
 - **Headless fires a `resize` during initial layout settling**, which dismisses any JS-opened
   transient UI (dropdown/popover/menu) before `--screenshot` captures it. To shoot an *open*
   state, hardcode the open class in a static-markup harness (CSS-only). To test *interactive* JS,
@@ -135,3 +136,23 @@ as ~0.3 ms there while the user sees lag. Two ways to catch it in headless (no C
   (0 fired, so onClose seemed not to run). Probe close handlers in real time and post the result
   to a loopback sink. The livepass console harness freezes `window.fetch` (a promise that never
   settles), so report with `XMLHttpRequest` there.
+
+**Live page load through a scratch node + console (2026-10-22, #1464):** when the question is what
+a real page load sends (request counts, statuses, what a node limits), stand up a throwaway
+cluster and drive Chrome over CDP:
+- One `config.toml` in the scratchpad (`[auth] jwt_secret`, `[database] backend = "sqlite"`, `path`
+  in the scratchpad; a `[models.x]` with an unreachable `base_url` if workstreams must be created),
+  `HOME`/`XDG_*` pointed into the scratchpad so nothing touches the real `~/.config`. Migrate and set
+  restart-only settings before starting: `ConfigStore(init_storage("sqlite", path=...)).set(...)`
+  (`model.default_alias` too). `turnstone-admin --config ... create-admin` for a login.
+- `turnstone-console` and `turnstone-server` on loopback ports, with `TURNSTONE_CONSOLE_URL` and
+  `TURNSTONE_ADVERTISE_URL`. A node restart takes a new node id, so the console 404s
+  `/node/<id>/` until it rediscovers it, and workstreams made on the old id answer 404.
+- The venv has no playwright or websockets, but has aiohttp: `--remote-debugging-port`, read
+  `/json` for the page's `webSocketDebuggerUrl`, `ws_connect` it, then `Network.enable`,
+  `Network.setCookie` (log in over HTTP first for the console cookie), `Page.navigate` /
+  `Page.reload`, and collect `Network.requestWillBeSent` / `responseReceived`. Restore panes on a
+  reload by writing `ts.shell.panes` to sessionStorage with `Runtime.evaluate`.
+- The console relays an event stream's non-200 as a 200 stream carrying an `error` event, so the
+  browser never shows a node's 429 or 404 there: read the node's `/metrics` counters and the
+  console log's `proxy.sse.non_200` lines instead.

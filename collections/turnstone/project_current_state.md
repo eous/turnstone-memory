@@ -1,11 +1,27 @@
 ---
 name: project_current_state
-description: "Release tracks (main → 1.9, 1.8 emergency-only, stable/1.7 no backports, 1.6/1.5 frozen), the 1.9 queue, migration head, release recipe and the patch-id-vs-uv.lock gotcha."
-metadata: 
+description: "Release tracks (main → 1.9, 1.8 emergency-only), the 1.9 queue, migration head, release recipe, patch-id-vs-uv.lock gotcha, and why v1.9.2's tag is not on main."
+metadata:
   node_type: memory
   type: project
-  modified: 2026-09-27T00:10:17.000Z
+  modified: 2026-11-09T00:00:00.000Z
 ---
+
+**2026-11-09:** `main` is at 1.9.4 (chart 0.3.13, appVersion 1.9.4), with `[1.9.2]`, `[1.9.3]` and
+`[1.9.4]` changelog sections; the migration head is 088 (`088_files_write_permission`). v1.9.2's
+tag is not an ancestor of `main`: it was cut on 2026-11-01 from two commits that change only
+release metadata (f0a2a6cd changelog, 416ac5fd bump) and are on no branch, so no code differs.
+`main`'s version, chart and changelog were brought back in line by 1.9.3, and nothing is left to
+clean up; expect `git describe` and tag-ancestry checks to skip v1.9.2. e37884b0 (coordinator cap
+removal, migration 087) is not in v1.9.2 and first shipped in 1.9.3.
+
+**2026-10-25 (supersedes the `dev` notes below):** `dev` was retired on 2026-10-23; all development
+integrates on `main`, and supported lines are maintained on `stable/X.Y` (`stable/1.8` keeps the
+former stable branch). v1.9.0 is tagged at `main`'s 5d380c8a. Read docs/releasing.md for the
+current process; the tick/tock recipe and dev-chart PR below predate it. Unreleased changelog work
+takes a dated heading ([[feedback_changelog_dated_headings]]). Migration head on `main` at v1.9.0
+is 083; `084_mcp_tls_skip_verify` was written the same day on a feature branch, so re-check
+before numbering a new one ([[feedback_alembic_linear_chain]]).
 
 **Tracks and queue (2026-09-26):**
 - `main` (→1.9 from the 09-07/08 cutover; 1.8 emergency-only after v1.8.3; v1.8.5 09-25 = typing-lag backport + openai<3.14 cap + discord mentions); `stable/1.7` no backports (08-04); 1.6/1.5 frozen.

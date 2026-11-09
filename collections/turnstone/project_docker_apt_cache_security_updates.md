@@ -1,8 +1,10 @@
 ---
 name: project_docker_apt_cache_security_updates
-description: "Saying a Debian security fix (a curl CVE etc.) reached a published image: the gha layer cache reuses the apt layer; check the image with dpkg-query; the apt step has a curl floor."
+description: "Saying a Debian fix (curl CVE, CA distrust) reached a published image: the gha cache reuses the apt layer; check with dpkg-query; apt floors for curl and ca-certificates; other root lists."
 metadata:
+  node_type: memory
   type: project
+  modified: 2026-10-20T23:25:26.807Z
 ---
 
 The image publish workflow builds with `cache-from: type=gha`, so the Dockerfile's
@@ -20,3 +22,11 @@ with `docker run --rm --entrypoint dpkg-query <image>:<tag> -W <package>`. To ge
 the apt step: PRs #1385 (dev) and #1386 (main) add a floor check (`dpkg --compare-versions ... ge
 <fixed version>`) that any newer build passes. Raising the floor for the next CVE also forces the
 layer to rebuild. The maintainer would rather not pin when the upgrade alone suffices.
+
+**A distrusted CA root needs more than the apt floor** (eMudhra/emSign incident, 2026-10-20, PR
+#1442, which added a `ca-certificates` floor the same way). The image has five root lists: Debian's
+store (HTTPX2 and OpenSSL users), the venv's certifi (httpx; a `certifi` floor in pyproject),
+pip's vendored certifi (the base image's pip, upgraded with uv; `python -m venv` still seeds
+ensurepip's bundled pip), uv's embedded roots (`uvx`; bump uv), and Node's built-in list (`npx`;
+the image sets `NODE_OPTIONS=--use-openssl-ca` so Node follows Debian's store). Check each one in
+the built image, not just `dpkg-query`.
