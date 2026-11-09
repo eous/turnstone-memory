@@ -15,6 +15,11 @@ recording it: write the test, and check that it fails against a mutant of the fi
 ships the branch, and a fix with no test of its own can be undone by a later change without any
 test failing.
 
+Whether a finding may go public is the maintainer's call, so ask. On 2026-10-19 (#1403) they chose
+public issues for review findings that only operator or admin configuration can trigger (#1433,
+#1434, #1435), and put the bounded fix in the touched module into the PR as its own commit, with a
+CHANGELOG Security entry.
+
 **How to apply:** keep an "Open before release" list in the branch's design note, and update it as
 items close. Run mutants per [[feedback_mutation_control_hygiene]]. Keep the note's wording neutral,
 and keep the item out of shared memories, including any example that would point to it
