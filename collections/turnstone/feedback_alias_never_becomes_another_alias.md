@@ -1,6 +1,6 @@
 ---
 name: feedback_alias_never_becomes_another_alias
-description: "Any model role or alias path: a set alias never turns into another alias when it can't run; picking reads settings only; fix the shape, don't add a flag per consumer (maintainer, 2026-10-31)."
+description: "Any model role or alias path: a set alias never turns into another alias when it can't run; picking reads settings only; fix the shape, don't add a flag per consumer."
 metadata:
   node_type: memory
   type: feedback

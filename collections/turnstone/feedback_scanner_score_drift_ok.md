@@ -1,6 +1,6 @@
 ---
 name: feedback_scanner_score_drift_ok
-description: "Changing the skill risk scanner (skill_scanner.py, its patterns or counting): score drift from the old heuristics is fine, esp. when more accurate; never chase exact parity (maintainer, 2026-10-23)."
+description: "Changing the skill risk scanner (skill_scanner.py): score drift from the old heuristics is fine, esp. when more accurate; never chase exact parity."
 metadata:
   node_type: memory
   type: feedback

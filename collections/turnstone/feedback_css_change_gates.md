@@ -33,8 +33,9 @@ missed ([[project_scheduled_launcher_kind]]).
   [[reference_headless_chrome_frontend_render]]).
 - Light-theme hue tokens (`--accent` #745415, `--cyan` #155e75, `--blue`
   #075985) were cut for 12px text on a 15% tint to clear 4.5:1; the chip-tint
-  floor stays 0.15 ([[feedback_chip_contrast]]), so fix contrast in the token,
-  never by thinning the tint. The amber sits at hue 40 (brand is 35) because
+  floor stays 0.15 (below 0.10 a tint reads as noise at chip size; pair it with
+  a same-hue border and a glyph), so fix contrast in the token, never by
+  thinning the tint. The amber sits at hue 40 (brand is 35) because
   a hue-35 amber at that lightness renders chocolate, verified by side-by-side
   headless render. The rail brand mark's far gradient stop is the per-theme
   `--brand-mark-end` token. #1094 (stacked on the same branch) then moved

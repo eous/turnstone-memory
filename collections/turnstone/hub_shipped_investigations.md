@@ -6,6 +6,10 @@ metadata:
 ---
 
 ## Shipped or closed investigations
+- [#1359 default model fails closed](project_1359_default_fail_closed.md) — #1359 (a load moves the default model): the 10-13 rulings (fail closed, stored default, hold on reopen, delete the failover chain) and the two-PR split.
+- [#679 MCP SDK v2 port](project_679_mcp_sdk_v2.md) — #679 port to the MCP SDK 2.3 floor: phase 0 (#1222-#1226) on 1.x, then PR #1395 with phase 2 folded in; the 10-14 rulings.
+- [Backdrop-filter typing lag](project_backdrop_filter_input_lag.md) — Typing lag under a backdrop-filter overlay, dialog or scrim: the compositor re-blurs it every frame.
+- [Release PR auto-delete incident](project_release_forward_merge_autodelete.md) — v1.8.2 (09-04): branch auto-delete removed main after a release PR and broke publish; check both publish runs. The main-to-dev forward merge it describes ended when dev was retired.
 - [#1313 MCP shutdown drain](project_1313_mcp_shutdown_drain.md) — #1313 MCP shutdown drain: the maintainer's rulings and the invariants to keep.
 - [#1281 hosted-item replay](project_1281_openai_hosted_item_replay.md) — OpenAI Responses hosted-item replay (#1281, 10-05): replay shapes the API accepts, its one namespace rule, why search results/sources are not replayed, the capability gate.
 - [Anthropic deferred server-tool calls](project_anthropic_deferred_server_tool_calls.md) — Anthropic web_search mixed with client tool calls comes back unrun and runs on the next request; user text before then 400s every request. Wire repair built 10-05, live-probed.

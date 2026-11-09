@@ -266,7 +266,8 @@ Fix plan (revised by review):
   and can't preempt a blocked send).
 - Recommended combo: B (kill rate) + storm-guarded A (residual) + real
   close-on-hide/replay-on-show for S1 + optionally raise 500 cap (orthogonal).
-  Do NOT raise cap as the primary lever ([[feedback_sse_queue_not_a_bottleneck]]).
+  Do NOT raise cap as the primary lever (stress tests never pushed an active
+  tab's queue past ~10 deep).
 - SYMPTOM OVER-DETERMINED: identical "output stops, backend healthy" also = the
   handler-wedge from [[project_frontend_long_session_audit]] (thrown finalize
   leaving refs stale). INSTRUMENT to distinguish scattered-clean-gap (drop) vs

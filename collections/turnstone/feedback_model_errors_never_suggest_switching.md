@@ -1,6 +1,6 @@
 ---
 name: feedback_model_errors_never_suggest_switching
-description: "Writing an error a model reads about a model it can't use (task_agent, spawn, create refusals): say why and suggest retrying only if retryable; never steer it to another model, never forbid one."
+description: "Writing an error a model reads about a model it can't use: say why, and suggest retrying only if retryable; never steer it to another model, never forbid one."
 metadata:
   node_type: memory
   type: feedback

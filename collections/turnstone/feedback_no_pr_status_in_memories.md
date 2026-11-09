@@ -16,4 +16,4 @@ Do NOT record PR/issue lifecycle status (OPEN / review-converged / MERGED-at-com
 - Decisions, rationale, rulings, gotchas, follow-ups stay — not derivable from git.
 - A blocker WITH an owner ("blocked on the maintainer's sec-1 adjudication") is allowed while it encodes a non-derivable decision point; a bare status roster ("OPEN PRs: #x #y") is not.
 - When a memory mentions a PR and its state matters to the task, check `gh`/git at read time instead of trusting or updating the memory.
-- Existing memories still carry status idioms (including [[project_current_state]] and MEMORY.md's Current State block); don't imitate them, and strip status incidentally when editing a file for other reasons. Related staleness rule: [[feedback_stable_deadline_memory_staleness]].
+- Existing memories still carry status idioms (including [[project_current_state]] and MEMORY.md's Current State block); don't imitate them, and strip status incidentally when editing a file for other reasons. A memory's "must land before vX.Y stable" deadline goes stale the same way: check `git tag -l "vX.Y*"` before citing it as urgent, and fix the memory if the release is already cut.

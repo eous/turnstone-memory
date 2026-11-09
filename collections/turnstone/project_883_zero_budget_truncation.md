@@ -44,8 +44,7 @@ drop notice, empty-output fast path). The DRAIN owns POLICY:
   deliberately NO aggregate cap — capping structural floors re-opens #883
   for wide fan-outs (every parallel spawn's handle needed or its child
   orphans); capping error floors masks failures behind a success-leaning
-  notice → blind re-runs (the [[feedback_no_silent_refusals]] / #865/#866
-  family). Backstop = pre-send `_over_hard` + ctx-overflow
+  notice → blind re-runs (the #865/#866 family). Backstop = pre-send `_over_hard` + ctx-overflow
   compact-and-retry; worst case is one extra compaction round-trip.
 - **Per-batch grace pool** (`_ZERO_BUDGET_VERBATIM_POOL_CHARS` = 2×floor):
   funds verbatim admission of small NON-structural results (denials,

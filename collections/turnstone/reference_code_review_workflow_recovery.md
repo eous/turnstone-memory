@@ -32,4 +32,4 @@ Finish the pipeline by invoking the stage agents **directly via the Agent tool**
 - Accounting that decides "was anything dropped": reported primaries + locations named in `[same root cause also at: …]` merge notes must cover every survivor index; `stats.reported < kept` is usually merges, not drops (2026-07-13 run: 19 kept → 14 primaries + 5 merged, zero dropped).
 - The report keeps ≤cap primaries; `merge` arrays absorb same-root-cause survivors (those ARE represented — their locations appear as "[same root cause also at: …]"). **Genuinely dropped = survivor indices never claimed as primary or merge.** Ranking is correctness-CONFIRMED → correctness-PLAUSIBLE → cleanup-CONFIRMED → cleanup-PLAUSIBLE, so drops are usually cleanup/PLAUSIBLE — but on a security diff triage them anyway.
 
-Related: [[feedback_large_review_orchestration]], [[feedback_code_review_effort_budget]].
+Related: [[feedback_large_review_orchestration]].
