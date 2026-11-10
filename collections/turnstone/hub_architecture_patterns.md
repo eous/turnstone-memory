@@ -13,7 +13,7 @@ metadata:
 - [SSE-core extraction](project_sse_core_extraction.md) — RULED 1.9 (the maintainer 07-24), lands before mcp v2 #679; don't reopen
 - [Operator hands-off knob map](project_operator_hands_off_knob_map.md) — Hands-off deployment advice → tool policies + smart approvals first
 - [Harness as compiler](project_harness_compiler_dialect_stack.md) — Sequencing harness work: dialect depth = soundness; decidable ships free, speculative needs a gate
-- [interlingua frontier](project_harness_interlingua_frontier.md) — HYPOTHESIS.md frontier coda (V* = interlingua, |W| vs L walls) → conjecture only, never a result
+- [interlingua frontier](project_harness_interlingua_frontier.md) — V* = interlingua duality, |W| vs L walls: idea history; dropped from HYPOTHESIS.md 2026-11-09 → never cite the doc for it
 - [HYPOTHESIS.md north star](project_harness_hypothesis_doc.md) — Gate/coordinator/compaction design: check HYPOTHESIS.md rules; learned checks only narrow authority
 - Reranker: [backend design](project_reranker_backend_design.md) — ENDPOINT-ONLY via a Cohere/Jina client, never in-process; web_search reranking shipped #626; web_fetch reranking ripped
 - Reranker: [BM25→rerank redirect](project_bm25_rerank_redirect.md) — relevance FLOOR; SHIPPED #627-#629, BM25 recall then rerank; thresholdable floor for proactive memory injection
